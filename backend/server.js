@@ -59,11 +59,22 @@ const allowedOrigins = [
   "https://www.oryenza.in",
 ];
 
+if (process.env.FRONTEND_URL) {
+  const customOrigins = process.env.FRONTEND_URL.split(",").map((o) => o.trim());
+  customOrigins.forEach((o) => {
+    if (o && !allowedOrigins.includes(o)) allowedOrigins.push(o);
+  });
+}
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, curl, server-to-server) or approved origins
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (mobile apps, curl, server-to-server) or approved origins/vercel previews
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
         callback(null, true);
       } else {
         callback(new Error("CORS policy violation: Access denied for this origin."));
