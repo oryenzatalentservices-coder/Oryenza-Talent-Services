@@ -12,6 +12,7 @@ import ContactSection from "./components/ContactSection";
 import Footer from "./components/Footer";
 import ThemeToggle from "./components/ThemeToggle";
 import CandidateModal from "./components/CandidateModal";
+import IntroAnimation from "./components/IntroAnimation";
 
 import "./styles/index.css";
 import "./styles/modal.css";
@@ -19,9 +20,15 @@ import "./styles/modal.css";
 export default function App() {
   const [candidateModalOpen, setCandidateModalOpen] = useState(false);
   const [selectedRequirement, setSelectedRequirement] = useState("");
+  const [introActive, setIntroActive] = useState(true);
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${introActive ? "intro-running" : ""}`}>
+      {/* Cinematic "HIRING AGENCY" Opening Split Curtain Intro Animation */}
+      {introActive && (
+        <IntroAnimation onComplete={() => setIntroActive(false)} />
+      )}
+
       {/* Sticky Header Navigation */}
       <Header onOpenCandidateModal={() => setCandidateModalOpen(true)} />
 

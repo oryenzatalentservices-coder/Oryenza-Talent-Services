@@ -1,0 +1,246 @@
+/* ==========================================================================
+   Oryenza "HIRING AGENCY" Cinematic Split Intro Curtain Animation
+   Matches official brand palette (#142b4b dark navy and #1565d8 / #27b5ff cyan laser)
+   ========================================================================== */
+
+/* Lock body and html scrolling while intro is visible */
+html.intro-active,
+body.intro-active {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+
+/* Fullscreen fixed viewport overlay */
+.intro-screen-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999999;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Subtle Skip Button */
+.intro-skip-btn {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 99999999;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.25s ease;
+  user-select: none;
+  opacity: 0.85;
+}
+
+.intro-skip-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+/* The Left & Right Sliding Curtain Panels */
+.intro-curtain {
+  position: absolute;
+  top: 0;
+  height: 100vh;
+  /* 2px overlap in the center to guarantee zero subpixel gap before split */
+  width: calc(50vw + 2px);
+  background: #142b4b;
+  overflow: hidden;
+  will-change: transform;
+  /* Smooth cinematic cubic-bezier curve for high-acceleration split */
+  transition: transform 0.95s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.intro-curtain-left {
+  left: 0;
+  transform: translate3d(0, 0, 0);
+}
+
+.intro-curtain-right {
+  right: 0;
+  transform: translate3d(0, 0, 0);
+}
+
+/* ==========================================================================
+   Phase: SPLIT - "hiring part go to left side and agency part goto right side"
+   ========================================================================== */
+.intro-screen-overlay.is-midsplit .intro-curtain-left {
+  transform: translate3d(-50%, 0, 0);
+}
+
+.intro-screen-overlay.is-midsplit .intro-curtain-right {
+  transform: translate3d(50%, 0, 0);
+}
+
+.intro-screen-overlay.is-splitting .intro-curtain-left {
+  transform: translate3d(-102%, 0, 0);
+}
+
+.intro-screen-overlay.is-splitting .intro-curtain-right {
+  transform: translate3d(102%, 0, 0);
+}
+
+.intro-screen-overlay.is-splitting .intro-skip-btn,
+.intro-screen-overlay.is-midsplit .intro-skip-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* ==========================================================================
+   The Glowing Horizontal Cyan / Blue Laser Line
+   ========================================================================== */
+.intro-laser-line {
+  position: absolute;
+  top: 50%;
+  height: 3.5px;
+  background: #1565d8;
+  box-shadow:
+    0 0 10px #27b5ff,
+    0 0 22px #00d2ff,
+    0 0 36px rgba(39, 181, 255, 0.85);
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.intro-laser-left {
+  right: 0;
+  width: 100vw;
+  transform-origin: right center;
+  animation: laserExpandLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.intro-laser-right {
+  left: 0;
+  width: 100vw;
+  transform-origin: left center;
+  animation: laserExpandRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes laserExpandLeft {
+  0% {
+    transform: translateY(-50%) scaleX(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes laserExpandRight {
+  0% {
+    transform: translateY(-50%) scaleX(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50%) scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   Typography Wrappers: "HIRING" and "AGENCY"
+   ========================================================================== */
+.intro-word-wrap {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.intro-wrap-left {
+  /* Aligned right against the curtain's right edge (center seam) */
+  right: clamp(18px, 3.2vw, 48px);
+  justify-content: flex-end;
+}
+
+.intro-wrap-right {
+  /* Aligned left against the curtain's left edge (center seam) */
+  left: clamp(18px, 3.2vw, 48px);
+  justify-content: flex-start;
+}
+
+.intro-word {
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 900;
+  /* Fluid responsive sizing matching reference images across mobile & desktop */
+  font-size: clamp(2.5rem, 7.5vw, 6.6rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: wordIntroImpact 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes wordIntroImpact {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .intro-skip-btn {
+    top: 18px;
+    right: 18px;
+    font-size: 0.75rem;
+    padding: 5px 12px;
+  }
+  .intro-word {
+    font-size: clamp(1.8rem, 6.8vw, 2.8rem);
+  }
+  .intro-wrap-left {
+    right: 12px;
+  }
+  .intro-wrap-right {
+    left: 12px;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .intro-curtain {
+    transition: transform 0.3s ease !important;
+  }
+  .intro-laser-line,
+  .intro-word {
+    animation-duration: 0.1s !important;
+  }
+}
