@@ -66,6 +66,23 @@ html.oryenza-dark {
     opacity: 1 !important;
     transform: none !important;
   }
+  #track-group {
+    opacity: 0 !important;
+  }
+  #hd {
+    opacity: 0 !important;
+  }
+  #tk {
+    opacity: 1 !important;
+    mask: none !important;
+    -webkit-mask: none !important;
+    transform: none !important;
+  }
+}
+
+html.oryenza-dark #tk,
+html[data-theme="dark"] #tk {
+  filter: url(#logo-glow);
 }
 
 * {
@@ -172,6 +189,11 @@ svg {
       <filter id="bubble-shadow-filter" x="-20%" y="-20%" width="140%" height="140%">
         <feDropShadow dx="0" dy="6" stdDeviation="10" flood-opacity="0.14"/>
       </filter>
+
+      <!-- Cyan rim glow for dark mode logo clarity -->
+      <filter id="logo-glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#38bdf8" flood-opacity="0.4"/>
+      </filter>
     </defs>
 
     {/* Circular Track and Dynamic Progress Arc */}
@@ -183,9 +205,9 @@ svg {
       </g>
     </g>
 
-    {/* Stage 06: Official Oryenza Brand Center (Reveals seamlessly at completion) */}
-    <g id="tk" mask="url(#m)">
-      <image href="/assets/process_journey_logo.png" x="0" y="0" width="700" height="700"/>
+    {/* Stage 06: Official Oryenza Brand Logo (Reveals seamlessly at completion) */}
+    <g id="tk" mask="url(#m)" opacity="0">
+      <image href="/assets/process_journey_logo.png" x="0" y="1" width="700" height="700"/>
     </g>
 
     {/* Stage 06: Cyan Shockwave Celebration Pulse */}
@@ -401,14 +423,18 @@ function frame(t) {
   const v = cl((tt - TR) / TD);
   const ve = ease(v);
 
-  // Mask circle expands to reveal the center brand mark
-  $('mc').setAttribute('r', ve * 500);
+  // Mask circle expands to reveal the full authentic brand logo
+  $('mc').setAttribute('r', ve * 550);
 
-  // Gentle scale pulse on the brand mark
-  $('tk').setAttribute('transform', `translate(${CX} ${CY}) scale(${0.94 + 0.06 * ve}) translate(${-CX} ${-CY})`);
+  // Gentle scale bloom & opacity on the brand logo
+  $('tk').setAttribute('opacity', ve);
+  $('tk').setAttribute('transform', `translate(${CX} ${CY}) scale(${0.92 + 0.08 * ve}) translate(${-CX} ${-CY})`);
+
+  // Circular journey track smoothly crossfades out as the official logo blooms into full view
+  $('track-group').setAttribute('opacity', 1 - ve);
 
   // Expanding celebration shockwave pulse ring
-  $('pu').setAttribute('r', 280 + ve * 60);
+  $('pu').setAttribute('r', 280 + ve * 80);
   $('pu').setAttribute('opacity', v > 0 ? (1 - ve) * 0.8 : 0);
 
   // Active Stage Determination for ALL 6 Steps (01 to 06)
