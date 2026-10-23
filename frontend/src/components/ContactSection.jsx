@@ -235,7 +235,7 @@ export default function ContactSection({
 
                 <a
                   className="social-btn x-btn"
-                  href="https://x.com/oryenza"
+                  href="https://x.com/OryenzaTalent"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Oryenza on X"

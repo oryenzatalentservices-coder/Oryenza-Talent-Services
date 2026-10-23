@@ -133,7 +133,7 @@ export default function Footer() {
                   </svg>
                 </a>
                 <a
-                  href="https://x.com/oryenza"
+                  href="https://x.com/OryenzaTalent"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="footer-social-icon x-twitter"
