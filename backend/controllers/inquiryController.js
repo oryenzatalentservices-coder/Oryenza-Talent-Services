@@ -11,10 +11,22 @@ exports.createInquiry = async (req, res) => {
         .status(400)
         .json({ success: false, error: "Full name is required." });
     }
+    if (name.length > 150) {
+      return res.status(400).json({ success: false, error: "Name is too long (max 150 characters)." });
+    }
     if (!email || !email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res
         .status(400)
         .json({ success: false, error: "A valid email address is required." });
+    }
+    if (email.length > 150) {
+      return res.status(400).json({ success: false, error: "Email address is too long." });
+    }
+    if (company && company.length > 150) {
+      return res.status(400).json({ success: false, error: "Company name is too long." });
+    }
+    if (phone && phone.length > 50) {
+      return res.status(400).json({ success: false, error: "Phone number is too long." });
     }
     if (!requirement || !requirement.trim()) {
       return res
@@ -29,14 +41,20 @@ exports.createInquiry = async (req, res) => {
           error: "Please provide details in the message field.",
         });
     }
+    if (message.length > 3000) {
+      return res.status(400).json({
+        success: false,
+        error: "Message is too long (max 3000 characters).",
+      });
+    }
 
     const newInquiry = await db.createInquiry({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      company: company ? company.trim() : null,
-      phone: phone ? phone.trim() : null,
-      requirement: requirement.trim(),
-      message: message.trim(),
+      name: name.trim().slice(0, 150),
+      email: email.trim().toLowerCase().slice(0, 150),
+      company: company ? company.trim().slice(0, 150) : null,
+      phone: phone ? phone.trim().slice(0, 50) : null,
+      requirement: requirement.trim().slice(0, 150),
+      message: message.trim().slice(0, 3000),
     });
 
     return res.status(201).json({

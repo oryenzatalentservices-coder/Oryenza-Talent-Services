@@ -1,8 +1,23 @@
 // API Service for Oryenza Talent Services Client
 const API_BASE = "/api";
 
+function getAdminHeaders(customKey) {
+  const key =
+    customKey ||
+    (typeof window !== "undefined"
+      ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+        window.localStorage?.getItem("oryenza_admin_key")
+      : null);
+
+  const headers = {};
+  if (key) {
+    headers["x-admin-key"] = key;
+  }
+  return headers;
+}
+
 export const api = {
-  // Inquiries
+  // Client Inquiries (Public Submission)
   async submitInquiry(data) {
     const res = await fetch(`${API_BASE}/inquiries`, {
       method: "POST",
@@ -14,19 +29,26 @@ export const api = {
     return result;
   },
 
-  async getInquiries(status = "all") {
+  // Protected Admin Inquiry Endpoints
+  async getInquiries(status = "all", adminKey = null) {
     const res = await fetch(
       `${API_BASE}/inquiries?status=${encodeURIComponent(status)}`,
+      {
+        headers: getAdminHeaders(adminKey),
+      }
     );
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || "Failed to fetch inquiries");
     return result;
   },
 
-  async updateInquiry(id, updates) {
+  async updateInquiry(id, updates, adminKey = null) {
     const res = await fetch(`${API_BASE}/inquiries/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...getAdminHeaders(adminKey),
+      },
       body: JSON.stringify(updates),
     });
     const result = await res.json();
@@ -34,40 +56,49 @@ export const api = {
     return result;
   },
 
-  async deleteInquiry(id) {
+  async deleteInquiry(id, adminKey = null) {
     const res = await fetch(`${API_BASE}/inquiries/${id}`, {
       method: "DELETE",
+      headers: getAdminHeaders(adminKey),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || "Failed to delete inquiry");
     return result;
   },
 
-  // Candidates
+  // Candidate Applications (Public Submission with Resume file)
   async submitCandidate(formData) {
     const res = await fetch(`${API_BASE}/candidates`, {
       method: "POST",
-      body: formData, // multipart/form-data for resume file
+      body: formData, // multipart/form-data with resume file
     });
     const result = await res.json();
-    if (!res.ok)
+    if (!res.ok) {
       throw new Error(result.error || "Failed to submit candidate application");
+    }
     return result;
   },
 
-  async getCandidates(status = "all") {
+  // Protected Admin Candidate Endpoints
+  async getCandidates(status = "all", adminKey = null) {
     const res = await fetch(
       `${API_BASE}/candidates?status=${encodeURIComponent(status)}`,
+      {
+        headers: getAdminHeaders(adminKey),
+      }
     );
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || "Failed to fetch candidates");
     return result;
   },
 
-  async updateCandidate(id, updates) {
+  async updateCandidate(id, updates, adminKey = null) {
     const res = await fetch(`${API_BASE}/candidates/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...getAdminHeaders(adminKey),
+      },
       body: JSON.stringify(updates),
     });
     const result = await res.json();
@@ -75,16 +106,17 @@ export const api = {
     return result;
   },
 
-  async deleteCandidate(id) {
+  async deleteCandidate(id, adminKey = null) {
     const res = await fetch(`${API_BASE}/candidates/${id}`, {
       method: "DELETE",
+      headers: getAdminHeaders(adminKey),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || "Failed to delete candidate");
     return result;
   },
 
-  // Stats & Health
+  // Public Stats & System Health
   async getStats() {
     const res = await fetch(`${API_BASE}/stats`);
     const result = await res.json();

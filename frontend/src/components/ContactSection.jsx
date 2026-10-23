@@ -283,6 +283,7 @@ export default function ContactSection({
                   name="name"
                   placeholder="Full name"
                   required
+                  maxLength={100}
                   value={formData.name}
                   onChange={handleChange}
                 />
@@ -295,6 +296,7 @@ export default function ContactSection({
                   type="email"
                   placeholder="you@company.com"
                   required
+                  maxLength={100}
                   value={formData.email}
                   onChange={handleChange}
                 />
@@ -305,6 +307,7 @@ export default function ContactSection({
                 <input
                   name="company"
                   placeholder="Company name"
+                  maxLength={100}
                   value={formData.company}
                   onChange={handleChange}
                 />
@@ -315,6 +318,7 @@ export default function ContactSection({
                 <input
                   name="phone"
                   placeholder="Enter phone number"
+                  maxLength={30}
                   value={formData.phone}
                   onChange={handleChange}
                 />
@@ -354,6 +358,7 @@ export default function ContactSection({
                   name="message"
                   placeholder="Share details on roles, seniority levels, target skills, location, timeline or budget..."
                   required
+                  maxLength={2000}
                   value={formData.message}
                   onChange={handleChange}
                 />

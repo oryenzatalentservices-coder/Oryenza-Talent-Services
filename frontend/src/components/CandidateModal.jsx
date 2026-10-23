@@ -26,9 +26,27 @@ export default function CandidateModal({ isOpen, onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateAndSetFile = (file) => {
+    if (!file) return;
+    const allowed = [".pdf", ".doc", ".docx"];
+    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (!allowed.includes(ext)) {
+      setStatusType("error");
+      setStatusMessage("Only .pdf, .doc, and .docx resume files are accepted.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setStatusType("error");
+      setStatusMessage("File size exceeds 8MB. Please upload a smaller document.");
+      return;
+    }
+    setStatusMessage(null);
+    setResumeFile(file);
+  };
+
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setResumeFile(e.target.files[0]);
+      validateAndSetFile(e.target.files[0]);
     }
   };
 
@@ -36,7 +54,7 @@ export default function CandidateModal({ isOpen, onClose }) {
     e.preventDefault();
     setDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setResumeFile(e.dataTransfer.files[0]);
+      validateAndSetFile(e.dataTransfer.files[0]);
     }
   };
 
@@ -118,6 +136,7 @@ export default function CandidateModal({ isOpen, onClose }) {
                 name="name"
                 placeholder="Enter your full name"
                 required
+                maxLength={100}
                 value={formData.name}
                 onChange={handleChange}
               />
@@ -130,6 +149,7 @@ export default function CandidateModal({ isOpen, onClose }) {
                 type="email"
                 placeholder="name@example.com"
                 required
+                maxLength={100}
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -141,6 +161,7 @@ export default function CandidateModal({ isOpen, onClose }) {
                 name="phone"
                 placeholder="Enter contact number"
                 required
+                maxLength={30}
                 value={formData.phone}
                 onChange={handleChange}
               />
@@ -152,6 +173,7 @@ export default function CandidateModal({ isOpen, onClose }) {
                 name="current_role"
                 placeholder="e.g. Senior Full-Stack Engineer"
                 required
+                maxLength={100}
                 value={formData.current_role}
                 onChange={handleChange}
               />
@@ -164,6 +186,7 @@ export default function CandidateModal({ isOpen, onClose }) {
                 type="number"
                 step="0.5"
                 min="0"
+                max="50"
                 placeholder="e.g. 5"
                 required
                 value={formData.experience_years}
@@ -177,6 +200,7 @@ export default function CandidateModal({ isOpen, onClose }) {
                 name="preferred_location"
                 placeholder="e.g. Surat, Ahmedabad, Remote, Hybrid"
                 required
+                maxLength={100}
                 value={formData.preferred_location}
                 onChange={handleChange}
               />
@@ -188,6 +212,7 @@ export default function CandidateModal({ isOpen, onClose }) {
                 name="skills"
                 placeholder="e.g. React, Node.js, MySQL, Python, Operations, Sales..."
                 required
+                maxLength={500}
                 value={formData.skills}
                 onChange={handleChange}
               />
@@ -236,7 +261,7 @@ export default function CandidateModal({ isOpen, onClose }) {
                       className="file-upload-subtext"
                       style={{ marginTop: "4px" }}
                     >
-                      PDF, DOC, or DOCX (Max 10MB) * Required
+                      PDF, DOC, or DOCX (Max 8MB) * Required
                     </div>
                   </div>
                 )}

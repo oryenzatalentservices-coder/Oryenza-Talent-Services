@@ -13,13 +13,25 @@ exports.getStats = async (req, res) => {
   }
 };
 
-// Health and DB status
+// Safe Health and Service Status (no sensitive credential disclosure)
 exports.getHealth = async (req, res) => {
-  const dbStatus = db.getStatus();
-  return res.json({
-    status: "online",
-    timestamp: new Date().toISOString(),
-    service: "Oryenza Talent Services API",
-    database: dbStatus,
-  });
+  try {
+    const dbStatus = db.getStatus();
+    return res.json({
+      status: "online",
+      timestamp: new Date().toISOString(),
+      service: "Oryenza Talent Services API",
+      database: {
+        healthy: true,
+        mode: dbStatus.mode,
+        isMysql: dbStatus.isMysql,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "degraded",
+      timestamp: new Date().toISOString(),
+      service: "Oryenza Talent Services API",
+    });
+  }
 };

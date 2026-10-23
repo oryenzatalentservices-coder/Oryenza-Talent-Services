@@ -67,23 +67,49 @@ exports.createCandidate = async (req, res) => {
         });
     }
 
+    // Length and URL scheme verification
+    if (name.length > 150) {
+      return res.status(400).json({ success: false, error: "Full name is too long (max 150 characters)." });
+    }
+    if (email.length > 150) {
+      return res.status(400).json({ success: false, error: "Email address is too long." });
+    }
+    if (phone.length > 50) {
+      return res.status(400).json({ success: false, error: "Phone number is too long." });
+    }
+    if (skills.length > 1500) {
+      return res.status(400).json({ success: false, error: "Skills field is too long (max 1500 characters)." });
+    }
+
+    let sanitizedPortfolioUrl = null;
+    if (portfolio_url && portfolio_url.trim()) {
+      const trimmedUrl = portfolio_url.trim();
+      if (!/^https?:\/\//i.test(trimmedUrl)) {
+        return res.status(400).json({
+          success: false,
+          error: "Portfolio/LinkedIn link must begin with http:// or https://",
+        });
+      }
+      sanitizedPortfolioUrl = trimmedUrl.slice(0, 500);
+    }
+
     let resume_path = null;
     let resume_original_name = null;
 
     if (req.file) {
-      resume_path = req.file.filename;
-      resume_original_name = req.file.originalname;
+      resume_path = path.basename(req.file.filename);
+      resume_original_name = path.basename(req.file.originalname).replace(/[^a-zA-Z0-9_.\-\s()]/g, "");
     }
 
     const newCandidate = await db.createCandidate({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.trim(),
-      current_role: current_role ? current_role.trim() : null,
+      name: name.trim().slice(0, 150),
+      email: email.trim().toLowerCase().slice(0, 150),
+      phone: phone.trim().slice(0, 50),
+      current_role: current_role ? current_role.trim().slice(0, 150) : null,
       experience_years: experience_years ? parseFloat(experience_years) : 0,
-      preferred_location: preferred_location ? preferred_location.trim() : null,
-      skills: skills ? skills.trim() : null,
-      portfolio_url: portfolio_url ? portfolio_url.trim() : null,
+      preferred_location: preferred_location ? preferred_location.trim().slice(0, 150) : null,
+      skills: skills ? skills.trim().slice(0, 1500) : null,
+      portfolio_url: sanitizedPortfolioUrl,
       resume_path,
       resume_original_name,
     });
@@ -160,18 +186,23 @@ exports.updateCandidate = async (req, res) => {
   }
 };
 
-// Download / view resume file
+// Download / view resume file (Hardened against path traversal and MIME spoofing)
 exports.downloadResume = (req, res) => {
   try {
     const { filename } = req.params;
-    const sanitized = path.basename(filename);
-    const filePath = path.join(
-      __dirname,
-      "..",
-      "uploads",
-      "resumes",
-      sanitized,
-    );
+    if (!filename) {
+      return res.status(400).json({ success: false, error: "Filename is required." });
+    }
+
+    // Strip any path traversal characters and directory parts
+    const sanitizedFilename = path.basename(filename).replace(/[^a-zA-Z0-9_.-]/g, "");
+    const baseUploadDir = path.resolve(__dirname, "..", "uploads", "resumes");
+    const filePath = path.resolve(baseUploadDir, sanitizedFilename);
+
+    // Verify filePath is strictly within baseUploadDir (canonical path traversal defense)
+    if (!filePath.startsWith(baseUploadDir)) {
+      return res.status(403).json({ success: false, error: "Access denied." });
+    }
 
     if (!fs.existsSync(filePath)) {
       return res
@@ -179,7 +210,8 @@ exports.downloadResume = (req, res) => {
         .json({ success: false, error: "Resume file not found." });
     }
 
-    return res.download(filePath);
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.download(filePath, sanitizedFilename);
   } catch (err) {
     console.error("Error downloading resume:", err);
     return res
