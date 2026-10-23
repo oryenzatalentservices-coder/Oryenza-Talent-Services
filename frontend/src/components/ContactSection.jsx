@@ -1,15 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { api } from "../services/api";
-import {
-  MessageCircle,
-  Send,
-  CheckCircle2,
-  AlertCircle,
-  Phone,
-  Mail,
-  MapPin,
-  Globe,
-} from "lucide-react";
+import { MessageCircle, Send, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function ContactSection({
   selectedRequirement,
@@ -28,11 +19,11 @@ export default function ContactSection({
   const [statusMessage, setStatusMessage] = useState(null);
   const [statusType, setStatusType] = useState(""); // 'success' | 'error'
 
-  useEffect(() => {
-    if (selectedRequirement) {
-      setFormData((prev) => ({ ...prev, requirement: selectedRequirement }));
-    }
-  }, [selectedRequirement]);
+  const [prevSelectedReq, setPrevSelectedReq] = useState(selectedRequirement);
+  if (selectedRequirement && selectedRequirement !== prevSelectedReq) {
+    setPrevSelectedReq(selectedRequirement);
+    setFormData((prev) => ({ ...prev, requirement: selectedRequirement }));
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;

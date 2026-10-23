@@ -1284,24 +1284,6 @@ html.oryenza-dark .oryenza-final-process {
   background: transparent;
 }
 
-@media (max-width: 768px) {
-  #process.section {
-    padding: 48px 0 54px;
-  }
-  .process-iframe-container {
-    height: 430px;
-  }
-}
-
-@media (max-width: 480px) {
-  #process.section {
-    padding: 38px 0 44px;
-  }
-  .process-iframe-container {
-    height: 380px;
-  }
-}
-
 /* Process Section - Native 5-Stage Stepper */
 .process-steps-grid {
   display: grid;

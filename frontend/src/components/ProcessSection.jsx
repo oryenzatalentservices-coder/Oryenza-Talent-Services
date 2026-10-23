@@ -100,7 +100,7 @@ export default function ProcessSection() {
             <iframe
               allow="autoplay"
               loading="eager"
-              src="/process_journey.html"
+              src="/assets/process_journey.html"
               style={{ background: "transparent" }}
               title="Oryenza 5-stage recruitment process journey animation"
             />

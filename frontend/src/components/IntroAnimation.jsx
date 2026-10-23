@@ -18,12 +18,27 @@ export default function IntroAnimation({ onComplete }) {
 
   // 'enter' -> 'split' -> 'done'
   const [phase, setPhase] = useState(
-    forcedPhase === "midsplit" ? "midsplit" : forcedPhase === "split" ? "split" : "enter"
+    forcedPhase === "skip"
+      ? "done"
+      : forcedPhase === "midsplit"
+      ? "midsplit"
+      : forcedPhase === "split"
+      ? "split"
+      : "enter"
   );
+
+  const finishIntro = React.useCallback(() => {
+    setPhase("done");
+    document.documentElement.classList.remove("intro-active");
+    document.body.classList.remove("intro-active");
+    if (onComplete) {
+      onComplete();
+    }
+  }, [onComplete]);
 
   useEffect(() => {
     if (forcedPhase === "skip") {
-      finishIntro();
+      if (onComplete) onComplete();
       return;
     }
 
@@ -61,16 +76,7 @@ export default function IntroAnimation({ onComplete }) {
       document.documentElement.classList.remove("intro-active");
       document.body.classList.remove("intro-active");
     };
-  }, []);
-
-  const finishIntro = () => {
-    setPhase("done");
-    document.documentElement.classList.remove("intro-active");
-    document.body.classList.remove("intro-active");
-    if (onComplete) {
-      onComplete();
-    }
-  };
+  }, [finishIntro, forcedPhase, onComplete]);
 
   if (phase === "done") {
     return null;

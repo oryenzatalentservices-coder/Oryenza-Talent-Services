@@ -110,7 +110,7 @@ function getLocalDb() {
   }
   try {
     return JSON.parse(fs.readFileSync(localDbPath, "utf8"));
-  } catch (err) {
+  } catch {
     return { inquiries: [], candidates: [], site_stats: [] };
   }
 }

@@ -47,9 +47,34 @@ export default function StatsSection() {
           ]);
         }
       })
-      .catch((err) => {
-        console.log("Using default KPI targets");
+      .catch(() => {
+        // Fallback to default KPI targets
       });
+  }, []);
+
+  const animateCounters = React.useCallback(() => {
+    const duration = 1600; // ms
+    const startTime = performance.now();
+
+    const update = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutExpo
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+
+      setStats((prev) =>
+        prev.map((s) => {
+          if (s.isText) return s;
+          return { ...s, value: Math.floor(ease * s.target) };
+        })
+      );
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    };
+
+    requestAnimationFrame(update);
   }, []);
 
   useEffect(() => {
@@ -60,44 +85,12 @@ export default function StatsSection() {
           animateCounters();
         }
       },
-      { threshold: 0.25 },
+      { threshold: 0.25 }
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
-  }, [hasAnimated, stats]);
-
-  const animateCounters = () => {
-    const duration = 1600; // ms
-    const startTime = performance.now();
-
-    const update = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // Cubic ease-out
-      const eased = 1 - Math.pow(1 - progress, 3);
-
-      setStats((prevStats) =>
-        prevStats.map((item) => {
-          if (item.isText) return item;
-          const current = Math.floor(eased * item.target);
-          return { ...item, value: current };
-        }),
-      );
-
-      if (progress < 1) {
-        requestAnimationFrame(update);
-      } else {
-        setStats((prevStats) =>
-          prevStats.map((item) =>
-            item.isText ? item : { ...item, value: item.target },
-          ),
-        );
-      }
-    };
-
-    requestAnimationFrame(update);
-  };
+  }, [hasAnimated, animateCounters]);
 
   return (
     <section className="stats growth-stats" ref={sectionRef}>

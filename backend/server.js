@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const path = require("path");
 require("dotenv").config();
 
 const { initDb } = require("./config/db");
@@ -101,7 +100,7 @@ app.get("/", (req, res) => {
 });
 
 // Centralized Secure Error Handling Middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   if (err.name === "MulterError") {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({

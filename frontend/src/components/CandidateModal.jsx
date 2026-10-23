@@ -3,8 +3,6 @@ import { api } from "../services/api";
 import { X, Upload, CheckCircle2, AlertCircle, FileText } from "lucide-react";
 
 export default function CandidateModal({ isOpen, onClose }) {
-  if (!isOpen) return null;
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -107,6 +105,8 @@ export default function CandidateModal({ isOpen, onClose }) {
       setLoading(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>

@@ -1,7 +1,8 @@
 import React from "react";
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
 
   const handleScroll = (e, targetId) => {
     e.preventDefault();
@@ -203,7 +204,7 @@ export default function Footer() {
 
         <div className="copyright">
           <span>
-            © {currentYear} Oryenza Talent Services. All rights reserved.
+            © {CURRENT_YEAR} Oryenza Talent Services. All rights reserved.
           </span>
           <span>Surat, Gujarat, India</span>
         </div>

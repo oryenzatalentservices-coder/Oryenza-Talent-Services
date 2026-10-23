@@ -28,6 +28,7 @@ exports.getHealth = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error("Health check error:", err);
     return res.status(500).json({
       status: "degraded",
       timestamp: new Date().toISOString(),
