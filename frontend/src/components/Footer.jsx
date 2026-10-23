@@ -60,10 +60,16 @@ export default function Footer() {
               <br />
               <a href="tel:+918200057027">+91 82000 57027</a>
               <br />
-              <span>
-                B-904, Pragati IT Park, Opp. Shell Petrol Pump, Mota Varachha,
-                Surat, Gujarat - 394101
-              </span>
+              <a
+                href="https://maps.google.com/?q=Pragati+IT+Park,+Opp.+Shell+Petrol+Pump,+Mota+Varachha,+Surat,+Gujarat+394101"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-address-link"
+                title="View Pragati IT Park, Surat on Google Maps"
+              >
+                B-904, Pragati IT Park, Opp. Shell Petrol Pump,<br />
+                Mota&nbsp;Varachha, Surat, Gujarat – 394101
+              </a>
 
               <div className="footer-social-row">
                 <a

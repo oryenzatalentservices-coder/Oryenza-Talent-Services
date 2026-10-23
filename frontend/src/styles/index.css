@@ -1633,6 +1633,13 @@ html.oryenza-dark .oryenza-final-process {
   font-size: 0.92rem;
   line-height: 1.5;
   color: var(--navy);
+  display: block;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.contact-address:hover {
+  color: var(--blue);
 }
 
 .contact-channels {
@@ -1879,6 +1886,12 @@ textarea {
 
 .footer-contact a:hover {
   color: var(--cyan);
+}
+
+.footer-address-link {
+  display: inline-block;
+  line-height: 1.5;
+  margin-top: 4px;
 }
 
 .footer-inner {
@@ -2444,6 +2457,10 @@ html.oryenza-dark .contact-item a {
 
 html.oryenza-dark .contact-address {
   color: #f1f5f9;
+}
+
+html.oryenza-dark .contact-address:hover {
+  color: #38bdf8;
 }
 
 html.oryenza-dark .contact-socials {

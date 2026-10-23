@@ -103,10 +103,16 @@ export default function ContactSection({
 
             <div className="contact-item">
               <small>Corporate Headquarters</small>
-              <div className="contact-address">
-                B-904, Pragati IT Park, Opp. Shell Petrol Pump, Mota Varachha,
-                Surat, Gujarat - 394101
-              </div>
+              <a
+                href="https://maps.google.com/?q=Pragati+IT+Park,+Opp.+Shell+Petrol+Pump,+Mota+Varachha,+Surat,+Gujarat+394101"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="contact-address"
+                title="View Oryenza Corporate Headquarters on Google Maps"
+              >
+                B-904, Pragati IT Park, Opp. Shell Petrol Pump,<br />
+                Mota&nbsp;Varachha, Surat, Gujarat – 394101
+              </a>
             </div>
 
             <div className="contact-item">
