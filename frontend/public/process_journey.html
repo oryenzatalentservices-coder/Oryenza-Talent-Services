@@ -47,7 +47,7 @@ html.oryenza-dark {
   --bubble-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
-/* Print Mode: Always High-Contrast Clean White for Document/PDF Printouts */
+/* Print Mode: High-Contrast Clean White for Document/PDF Printouts */
 @media print {
   html, body {
     background: #ffffff !important;
@@ -91,18 +91,18 @@ html, body {
 
 #wrap {
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 0;
   position: relative;
   transition: opacity 0.3s ease;
 }
 
 svg {
-  width: min(92vw, 530px);
+  width: min(90vw, 440px);
   height: auto;
   overflow: visible;
   display: block;
@@ -110,32 +110,40 @@ svg {
 
 #lab {
   text-align: center;
-  margin-top: 14px;
-  min-height: 80px;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  margin-top: 6px;
+  min-height: 66px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.25s ease;
 }
 
 #num {
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
-  font-size: clamp(34px, 5.5vw, 44px);
+  font-size: clamp(30px, 4.8vw, 40px);
   color: var(--num);
   line-height: 1.1;
   letter-spacing: -0.02em;
+  transition: color 0.3s ease;
 }
 
 #name {
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  font-size: clamp(22px, 3.8vw, 28px);
+  font-size: clamp(20px, 3.4vw, 26px);
   color: var(--text);
   letter-spacing: -0.01em;
+  margin-top: 2px;
+  transition: color 0.3s ease;
 }
 </style>
 </head>
 <body>
 <div id="wrap">
-  <svg viewBox="-170 -150 1040 1000" role="img" aria-label="5 Stage Recruitment Process Journey Animation">
+  <!-- Tightened viewBox to eliminate dead margin padding -->
+  <svg viewBox="-90 -60 880 750" role="img" aria-label="5 Stage Recruitment Process Journey Animation">
     <defs>
       <!-- Gradient for the journey track and official brand logo -->
       <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="40" y1="120" x2="660" y2="640">
@@ -150,13 +158,13 @@ svg {
       </filter>
 
       <!-- Clean circular cut-out mask at top-right for arrow opening -->
-      <mask id="c" maskUnits="userSpaceOnUse" x="-90" y="-90" width="880" height="880">
-        <rect x="-90" y="-90" width="880" height="880" fill="#fff"/>
+      <mask id="c" maskUnits="userSpaceOnUse" x="-100" y="-100" width="900" height="900">
+        <rect x="-100" y="-100" width="900" height="900" fill="#fff"/>
         <polygon points="350,351 744,43 665,-38 569,-98" fill="#000"/>
       </mask>
 
       <!-- Expanding mask revealing center brand mark at stage 06 -->
-      <mask id="m" maskUnits="userSpaceOnUse" x="-90" y="-90" width="880" height="880">
+      <mask id="m" maskUnits="userSpaceOnUse" x="-100" y="-100" width="900" height="900">
         <circle id="mc" cx="350" cy="351" r="0" fill="#fff"/>
       </mask>
 
@@ -247,9 +255,10 @@ svg {
     </g>
   </svg>
 
+  <!-- Live Dynamic Bottom Title & Number Displayed for ALL Steps (01 to 06) -->
   <div id="lab">
-    <div id="num">06</div>
-    <div id="name">Successful Joining</div>
+    <div id="num">01</div>
+    <div id="name">Requirement Intake</div>
   </div>
 </div>
 
@@ -305,7 +314,16 @@ try {
 
 window.addEventListener('storage', syncTheme);
 
-// 5-Stage Animation Timeline
+// Complete Stage Metadata for ALL Steps (01 to 06)
+const STAGES = [
+  { num: "01", name: "Requirement Intake" },
+  { num: "02", name: "Active Sourcing" },
+  { num: "03", name: "Contextual Screening" },
+  { num: "04", name: "Interview Loop" },
+  { num: "05", name: "Offer & Onboarding" },
+  { num: "06", name: "Successful Joining" }
+];
+
 const POP = [
   "01  Requirement Intake",
   "02  Active Sourcing",
@@ -393,10 +411,34 @@ function frame(t) {
   $('pu').setAttribute('r', 280 + ve * 60);
   $('pu').setAttribute('opacity', v > 0 ? (1 - ve) * 0.8 : 0);
 
-  // Stage 06 bottom text label ("06 Successful Joining")
-  const lo = cl((tt - TR) / 0.45);
-  $('lab').style.opacity = lo;
-  $('lab').style.transform = `translateY(${(1 - lo) * 10}px)`;
+  // Active Stage Determination for ALL 6 Steps (01 to 06)
+  let currentStage = 0;
+  if (tt < L[1]) {
+    currentStage = 0;
+  } else if (tt < L[2]) {
+    currentStage = 1;
+  } else if (tt < L[3]) {
+    currentStage = 2;
+  } else if (tt < L[4]) {
+    currentStage = 3;
+  } else if (tt < TR) {
+    currentStage = 4;
+  } else {
+    currentStage = 5;
+  }
+
+  // Update Dynamic Bottom Number & Title for ALL steps
+  const stageData = STAGES[currentStage];
+  if ($('num').textContent !== stageData.num) {
+    $('num').textContent = stageData.num;
+  }
+  if ($('name').textContent !== stageData.name) {
+    $('name').textContent = stageData.name;
+  }
+
+  // Bottom Label Visibility: Fades in smoothly at start and stays visible for ALL steps
+  const labOp = Math.min(cl((tt - 0.1) / 0.25), cl((END + FADE - t) / FADE));
+  $('lab').style.opacity = labOp;
 
   // Seamless loop fade
   $('wrap').style.opacity = Math.min(cl(t / 0.3), cl((END + FADE - t) / FADE));
