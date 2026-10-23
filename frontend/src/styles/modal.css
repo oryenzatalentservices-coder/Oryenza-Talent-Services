@@ -1,0 +1,281 @@
+/* Oryenza Talent Services - Candidate Intake Modal Styles */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(11, 31, 58, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeIn 0.25s ease;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--line);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 10;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--navy);
+}
+
+.modal-subheading {
+  margin: 4px 0 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.modal-close-btn {
+  background: #f1f5f9;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #475569;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.modal-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.modal-body {
+  padding: 28px;
+}
+
+.modal-body form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.modal-body label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #33445a;
+}
+
+.modal-body label.full,
+.modal-body .full {
+  grid-column: 1 / -1;
+}
+
+.modal-body input {
+  font-family: inherit;
+  font-size: 0.94rem;
+  width: 100%;
+  border: 1px solid #d5e0ed;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+  color: var(--ink);
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.modal-body input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(21, 101, 216, 0.15);
+}
+
+/* File Upload Box */
+.file-upload-box {
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 22px;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.file-upload-box:hover,
+.file-upload-box.dragover {
+  border-color: var(--blue);
+  background: #f0f7ff;
+}
+
+.file-upload-box input[type="file"] {
+  display: none;
+}
+
+.file-upload-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--pale);
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+}
+
+.file-upload-highlight {
+  color: var(--navy);
+  font-weight: 750;
+}
+
+.file-upload-name {
+  color: var(--blue);
+  font-weight: 750;
+  display: block;
+}
+
+.file-upload-subtext {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* =========================================
+   DARK THEME MODAL STYLING
+   ========================================= */
+html.oryenza-dark .modal-content {
+  background: #0d1e34;
+  border-color: #1f3b60;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.65);
+}
+
+html.oryenza-dark .modal-header {
+  background: #0d1e34;
+  border-color: #1f3b60;
+}
+
+html.oryenza-dark .modal-header h3 {
+  color: #ffffff;
+}
+
+html.oryenza-dark .modal-subheading {
+  color: #94a9c4;
+}
+
+html.oryenza-dark .modal-close-btn {
+  background: #172c47;
+  color: #a4b5cb;
+}
+
+html.oryenza-dark .modal-close-btn:hover {
+  background: #1f3a5f;
+  color: #ffffff;
+}
+
+html.oryenza-dark .modal-body label {
+  color: #e2eaf6;
+}
+
+html.oryenza-dark .modal-body input {
+  background: #081525;
+  border-color: #244169;
+  color: #f3f7ff;
+}
+
+html.oryenza-dark .modal-body input:focus {
+  border-color: #00b8d9;
+  box-shadow: 0 0 0 3px rgba(0, 184, 217, 0.25);
+}
+
+html.oryenza-dark .modal-body input::placeholder {
+  color: #728aa8;
+}
+
+html.oryenza-dark .file-upload-box {
+  background: #081525;
+  border-color: #244169;
+  color: #cbd5e1;
+}
+
+html.oryenza-dark .file-upload-box:hover,
+html.oryenza-dark .file-upload-box.dragover {
+  background: #0b1e36;
+  border-color: var(--cyan);
+}
+
+html.oryenza-dark .file-upload-highlight {
+  color: #38bdf8;
+}
+
+html.oryenza-dark .file-upload-name {
+  color: #38bdf8;
+}
+
+html.oryenza-dark .file-upload-subtext {
+  color: #8fa4be;
+}
+
+html.oryenza-dark .file-upload-icon {
+  background: #132a48;
+  color: #38bdf8;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-backdrop {
+    padding: 10px;
+  }
+  .modal-content {
+    border-radius: 18px;
+    max-height: 94vh;
+  }
+  .modal-header {
+    padding: 18px 20px;
+  }
+  .modal-body {
+    padding: 18px 20px;
+  }
+  .modal-body form {
+    grid-template-columns: 1fr;
+  }
+}

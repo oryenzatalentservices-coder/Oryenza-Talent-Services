@@ -1,0 +1,70 @@
+{
+  "inquiries": [],
+  "candidates": [
+    {
+      "id": 2,
+      "name": "Harshil Desai",
+      "email": "harshil@example.com",
+      "phone": "+91 98980 11223",
+      "current_role": "Senior React & Node Engineer",
+      "experience_years": 5,
+      "preferred_location": "Surat / Remote",
+      "skills": "React, Node.js, Express, MySQL, TypeScript",
+      "resume_path": null,
+      "resume_original_name": null,
+      "portfolio_url": null,
+      "status": "applied",
+      "admin_notes": null,
+      "created_at": "2026-10-17T08:36:55.391Z",
+      "updated_at": "2026-10-17T08:36:55.391Z"
+    },
+    {
+      "id": 1,
+      "name": "Anand Verma",
+      "email": "anand.verma@gmail.com",
+      "phone": "+91 99887 76655",
+      "current_role": "Lead Backend Engineer",
+      "experience_years": 6.5,
+      "preferred_location": "Surat / Remote",
+      "skills": "Node.js, Express, MySQL, PostgreSQL, Docker, AWS",
+      "resume_path": null,
+      "resume_original_name": "Anand_Verma_CV.pdf",
+      "portfolio_url": "https://github.com/anandverma",
+      "status": "screening",
+      "admin_notes": "Excellent backend architecture fundamentals. Shortlisted for client review.",
+      "created_at": "2026-10-14T08:24:38.907Z",
+      "updated_at": "2026-10-16T08:24:38.907Z"
+    }
+  ],
+  "site_stats": [
+    {
+      "id": 1,
+      "metric_key": "happy_clients",
+      "metric_value": 25,
+      "label": "Happy clients",
+      "suffix": "+"
+    },
+    {
+      "15": true,
+      "id": 2,
+      "metric_key": "industries_served",
+      "metric_value": 15,
+      "label": "Industries served",
+      "suffix": "+"
+    },
+    {
+      "id": 3,
+      "metric_key": "successful_placements",
+      "metric_value": 250,
+      "label": "Successful placements",
+      "suffix": "+"
+    },
+    {
+      "id": 4,
+      "metric_key": "retention_rate",
+      "metric_value": 96,
+      "label": "1-Year retention rate",
+      "suffix": "%"
+    }
+  ]
+}

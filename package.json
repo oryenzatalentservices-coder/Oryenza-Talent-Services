@@ -1,0 +1,17 @@
+{
+  "name": "oryenza-talent-fullstack",
+  "version": "1.0.0",
+  "description": "Full-stack conversion of Oryenza Talent Services website using React, Node.js, Express, and MySQL",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "seed": "cd backend && npm run seed",
+    "init-db": "cd backend && npm run init-db"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
