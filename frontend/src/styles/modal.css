@@ -272,10 +272,48 @@ html.oryenza-dark .file-upload-icon {
   .modal-header {
     padding: 18px 20px;
   }
+  .modal-header h3 {
+    font-size: 1.2rem;
+  }
   .modal-body {
     padding: 18px 20px;
   }
   .modal-body form {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .modal-body input {
+    font-size: 16px !important;
   }
 }
+
+@media (max-width: 400px) {
+  .modal-backdrop {
+    padding: 6px;
+  }
+  .modal-content {
+    border-radius: 14px;
+    max-height: 96vh;
+  }
+  .modal-header {
+    padding: 14px 16px;
+  }
+  .modal-header h3 {
+    font-size: 1.1rem;
+  }
+  .modal-subheading {
+    font-size: 0.8rem;
+  }
+  .modal-body {
+    padding: 14px 16px;
+  }
+  .file-upload-box {
+    padding: 14px;
+    gap: 6px;
+  }
+  .file-upload-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
