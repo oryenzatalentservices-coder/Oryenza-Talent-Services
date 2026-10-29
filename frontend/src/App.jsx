@@ -24,13 +24,11 @@ function checkIsAdminUrl() {
   const hash = window.location.hash.toLowerCase();
   const view = new URLSearchParams(window.location.search).get("view")?.toLowerCase();
 
+  // ONLY /oryenza_admin26 opens the admin side
   return (
     path === "/oryenza_admin26" ||
     hash === "#oryenza_admin26" ||
-    path === "/admin" ||
-    hash === "#admin" ||
-    view === "oryenza_admin26" ||
-    view === "admin"
+    view === "oryenza_admin26"
   );
 }
 
@@ -39,15 +37,6 @@ export default function App() {
   const [candidateModalOpen, setCandidateModalOpen] = useState(false);
   const [selectedRequirement, setSelectedRequirement] = useState("");
   const [introActive, setIntroActive] = useState(() => !checkIsAdminUrl());
-
-  // Automatically update legacy /admin or #admin to the new secret /oryenza_admin26 path
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const path = window.location.pathname.toLowerCase().replace(/\/+$/, "");
-    if (path === "/admin") {
-      window.history.replaceState(null, "", "/oryenza_admin26");
-    }
-  }, []);
 
   // Listen to browser forward/back buttons and hash changes
   useEffect(() => {
