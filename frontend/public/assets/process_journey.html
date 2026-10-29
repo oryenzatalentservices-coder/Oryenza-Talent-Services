@@ -103,62 +103,72 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   user-select: none;
   -webkit-user-select: none;
-  padding: 6px 0 16px;
+  padding: 8px 6px 12px;
 }
 
 #wrap {
   width: 100%;
-  max-width: 460px;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0 8px;
+  justify-content: flex-start;
+  padding: 0 4px;
   position: relative;
-  transition: opacity 0.3s ease;
+  margin: 0 auto;
 }
 
 svg {
-  width: min(84vw, 380px);
+  width: min(78vw, 320px);
   height: auto;
-  max-height: 330px;
+  max-height: 270px;
   overflow: visible;
   display: block;
+  flex-shrink: 0;
+  margin: 0 auto;
 }
 
 #lab {
   text-align: center;
-  margin-top: 4px;
-  min-height: 62px;
+  margin-top: 6px;
+  padding: 2px 8px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.25s ease;
+  flex-shrink: 0;
+  z-index: 10;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 #num {
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
-  font-size: clamp(26px, 4.4vw, 34px);
+  font-size: clamp(24px, 4.2vw, 32px);
   color: var(--num);
   line-height: 1.1;
   letter-spacing: -0.02em;
   transition: color 0.3s ease;
+  display: block !important;
+  visibility: visible !important;
 }
 
 #name {
   font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  font-size: clamp(17px, 3.2vw, 22px);
+  font-weight: 800;
+  font-size: clamp(16px, 3.2vw, 22px);
   color: var(--text);
   letter-spacing: -0.01em;
-  margin-top: 2px;
+  margin-top: 4px;
   line-height: 1.25;
   transition: color 0.3s ease;
+  display: block !important;
+  visibility: visible !important;
+  white-space: nowrap;
 }
 </style>
 </head>
@@ -467,9 +477,8 @@ function frame(t) {
     $('name').textContent = stageData.name;
   }
 
-  // Bottom Label Visibility: Fades in smoothly at start and stays visible for ALL steps
-  const labOp = Math.min(cl((tt - 0.1) / 0.25), cl((END + FADE - t) / FADE));
-  $('lab').style.opacity = labOp;
+  // Bottom Label Visibility: Always permanently 100% visible
+  $('lab').style.opacity = '1';
 
   // Seamless loop fade
   $('wrap').style.opacity = Math.min(cl(t / 0.3), cl((END + FADE - t) / FADE));
