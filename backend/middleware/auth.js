@@ -9,7 +9,7 @@ function authenticateAdmin(req, res, next) {
   const configuredSecret =
     process.env.ADMIN_SECRET_KEY ||
     process.env.ADMIN_API_KEY ||
-    "oryenza_admin_2026";
+    "OryenzaTalentServices@132026";
 
   // Check possible header/query authentication methods
   const apiKeyHeader = req.headers["x-admin-key"] || req.headers["x-api-key"];
