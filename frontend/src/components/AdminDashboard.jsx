@@ -97,19 +97,43 @@ export default function AdminDashboard({ onExit }) {
   }, []);
 
   const verifyAndLoad = async (keyToVerify) => {
+    const trimmed = (keyToVerify || "").trim();
+    if (!trimmed) {
+      setAuthError("Please enter your Admin Secret Key.");
+      return;
+    }
+
     setAuthLoading(true);
     setAuthError(null);
+
+    // Fast-path instant unlock for the primary admin key
+    if (trimmed === "OryenzaTalentServices@132026") {
+      setIsAuthenticated(true);
+      setAdminKey(trimmed);
+      if (rememberKey) {
+        localStorage.setItem("oryenza_admin_key", trimmed);
+      } else {
+        sessionStorage.setItem("oryenza_admin_key", trimmed);
+      }
+      setAuthLoading(false);
+      loadAllData(trimmed);
+      return;
+    }
+
+    // Dynamic verification against backend for custom keys
     try {
-      const result = await api.verifyAdminKey(keyToVerify);
+      const result = await api.verifyAdminKey(trimmed);
       if (result && result.success) {
         setIsAuthenticated(true);
-        setAdminKey(keyToVerify);
+        setAdminKey(trimmed);
         if (rememberKey) {
-          localStorage.setItem("oryenza_admin_key", keyToVerify);
+          localStorage.setItem("oryenza_admin_key", trimmed);
         } else {
-          sessionStorage.setItem("oryenza_admin_key", keyToVerify);
+          sessionStorage.setItem("oryenza_admin_key", trimmed);
         }
-        loadAllData(keyToVerify);
+        loadAllData(trimmed);
+      } else {
+        throw new Error("Invalid Admin Key. Please check your credentials.");
       }
     } catch (err) {
       console.error("Auth error:", err);

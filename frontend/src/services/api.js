@@ -1,5 +1,8 @@
 // API Service for Oryenza Talent Services Client
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const rawApiBase =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://oryenza-talent-services.onrender.com/api";
+const API_BASE = rawApiBase.replace(/\/+$/, "");
 
 function getAdminHeaders(customKey) {
   const key =
@@ -12,6 +15,7 @@ function getAdminHeaders(customKey) {
   const headers = {};
   if (key) {
     headers["x-admin-key"] = key;
+    headers["Authorization"] = `Bearer ${key}`;
   }
   return headers;
 }
@@ -122,8 +126,15 @@ export const api = {
 
   // Protected Admin Inquiry Endpoints
   async getInquiries(status = "all", adminKey = null) {
+    const key =
+      adminKey ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+          window.localStorage?.getItem("oryenza_admin_key")
+        : "");
+    const keyParam = key ? `&admin_key=${encodeURIComponent(key)}` : "";
     return await request(
-      `${API_BASE}/inquiries?status=${encodeURIComponent(status)}`,
+      `${API_BASE}/inquiries?status=${encodeURIComponent(status)}${keyParam}`,
       {
         headers: getAdminHeaders(adminKey),
       },
@@ -132,8 +143,15 @@ export const api = {
   },
 
   async updateInquiry(id, updates, adminKey = null) {
+    const key =
+      adminKey ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+          window.localStorage?.getItem("oryenza_admin_key")
+        : "");
+    const keyParam = key ? `?admin_key=${encodeURIComponent(key)}` : "";
     return await request(
-      `${API_BASE}/inquiries/${id}`,
+      `${API_BASE}/inquiries/${id}${keyParam}`,
       {
         method: "PATCH",
         headers: {
@@ -147,8 +165,15 @@ export const api = {
   },
 
   async deleteInquiry(id, adminKey = null) {
+    const key =
+      adminKey ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+          window.localStorage?.getItem("oryenza_admin_key")
+        : "");
+    const keyParam = key ? `?admin_key=${encodeURIComponent(key)}` : "";
     return await request(
-      `${API_BASE}/inquiries/${id}`,
+      `${API_BASE}/inquiries/${id}${keyParam}`,
       {
         method: "DELETE",
         headers: getAdminHeaders(adminKey),
@@ -171,8 +196,15 @@ export const api = {
 
   // Protected Admin Candidate Endpoints
   async getCandidates(status = "all", adminKey = null) {
+    const key =
+      adminKey ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+          window.localStorage?.getItem("oryenza_admin_key")
+        : "");
+    const keyParam = key ? `&admin_key=${encodeURIComponent(key)}` : "";
     return await request(
-      `${API_BASE}/candidates?status=${encodeURIComponent(status)}`,
+      `${API_BASE}/candidates?status=${encodeURIComponent(status)}${keyParam}`,
       {
         headers: getAdminHeaders(adminKey),
       },
@@ -181,8 +213,15 @@ export const api = {
   },
 
   async updateCandidate(id, updates, adminKey = null) {
+    const key =
+      adminKey ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+          window.localStorage?.getItem("oryenza_admin_key")
+        : "");
+    const keyParam = key ? `?admin_key=${encodeURIComponent(key)}` : "";
     return await request(
-      `${API_BASE}/candidates/${id}`,
+      `${API_BASE}/candidates/${id}${keyParam}`,
       {
         method: "PATCH",
         headers: {
@@ -196,8 +235,15 @@ export const api = {
   },
 
   async deleteCandidate(id, adminKey = null) {
+    const key =
+      adminKey ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+          window.localStorage?.getItem("oryenza_admin_key")
+        : "");
+    const keyParam = key ? `?admin_key=${encodeURIComponent(key)}` : "";
     return await request(
-      `${API_BASE}/candidates/${id}`,
+      `${API_BASE}/candidates/${id}${keyParam}`,
       {
         method: "DELETE",
         headers: getAdminHeaders(adminKey),
