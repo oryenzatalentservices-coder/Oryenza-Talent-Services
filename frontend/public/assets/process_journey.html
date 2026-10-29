@@ -106,31 +106,33 @@ html, body {
   justify-content: center;
   user-select: none;
   -webkit-user-select: none;
+  padding: 6px 0 16px;
 }
 
 #wrap {
   width: 100%;
-  max-width: 500px;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 0 8px;
   position: relative;
   transition: opacity 0.3s ease;
 }
 
 svg {
-  width: min(90vw, 440px);
+  width: min(84vw, 380px);
   height: auto;
+  max-height: 330px;
   overflow: visible;
   display: block;
 }
 
 #lab {
   text-align: center;
-  margin-top: 6px;
-  min-height: 66px;
+  margin-top: 4px;
+  min-height: 62px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -141,7 +143,7 @@ svg {
 #num {
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
-  font-size: clamp(30px, 4.8vw, 40px);
+  font-size: clamp(26px, 4.4vw, 34px);
   color: var(--num);
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -151,10 +153,11 @@ svg {
 #name {
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  font-size: clamp(20px, 3.4vw, 26px);
+  font-size: clamp(17px, 3.2vw, 22px);
   color: var(--text);
   letter-spacing: -0.01em;
   margin-top: 2px;
+  line-height: 1.25;
   transition: color 0.3s ease;
 }
 </style>

@@ -1268,7 +1268,7 @@ html.oryenza-dark .oryenza-final-process {
 
 .process-iframe-container {
   width: 100%;
-  height: 420px;
+  height: 480px;
   position: relative;
   background: transparent;
   display: flex;
@@ -2718,7 +2718,7 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
     padding: 40px 0 44px;
   }
   .process-iframe-container {
-    height: 380px;
+    height: 430px;
   }
 }
 
