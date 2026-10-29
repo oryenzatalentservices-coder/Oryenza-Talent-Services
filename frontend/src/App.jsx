@@ -20,10 +20,17 @@ import "./styles/modal.css";
 
 function checkIsAdminUrl() {
   if (typeof window === "undefined") return false;
+  const path = window.location.pathname.toLowerCase().replace(/\/+$/, "");
+  const hash = window.location.hash.toLowerCase();
+  const view = new URLSearchParams(window.location.search).get("view")?.toLowerCase();
+
   return (
-    window.location.pathname === "/admin" ||
-    window.location.hash === "#admin" ||
-    new URLSearchParams(window.location.search).get("view") === "admin"
+    path === "/oryenza_admin26" ||
+    hash === "#oryenza_admin26" ||
+    path === "/admin" ||
+    hash === "#admin" ||
+    view === "oryenza_admin26" ||
+    view === "admin"
   );
 }
 
@@ -32,6 +39,15 @@ export default function App() {
   const [candidateModalOpen, setCandidateModalOpen] = useState(false);
   const [selectedRequirement, setSelectedRequirement] = useState("");
   const [introActive, setIntroActive] = useState(() => !checkIsAdminUrl());
+
+  // Automatically update legacy /admin or #admin to the new secret /oryenza_admin26 path
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const path = window.location.pathname.toLowerCase().replace(/\/+$/, "");
+    if (path === "/admin") {
+      window.history.replaceState(null, "", "/oryenza_admin26");
+    }
+  }, []);
 
   // Listen to browser forward/back buttons and hash changes
   useEffect(() => {
@@ -60,7 +76,7 @@ export default function App() {
         setIsAdminView((prev) => {
           const next = !prev;
           if (next) {
-            window.history.pushState(null, "", "/admin");
+            window.history.pushState(null, "", "/oryenza_admin26");
             setIntroActive(false);
           } else {
             window.history.pushState(null, "", "/");
