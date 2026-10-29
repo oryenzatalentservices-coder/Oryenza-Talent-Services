@@ -13,6 +13,8 @@ import {
   RefreshCw,
   X,
   FileText,
+  FileSpreadsheet,
+  ChevronDown,
   Mail,
   Phone,
   Building,
@@ -28,6 +30,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+import { exportToExcel, exportToPDF, exportToCSV } from "../utils/exportUtils";
 import "../styles/admin.css";
 
 export default function AdminDashboard({ onExit }) {
@@ -88,6 +91,26 @@ export default function AdminDashboard({ onExit }) {
   const [itemType, setItemType] = useState(null); // 'inquiry' | 'candidate'
   const [adminNotes, setAdminNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+
+  // Export dropdown menu state
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = React.useRef(null);
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        exportMenuRef.current &&
+        !exportMenuRef.current.contains(event.target)
+      ) {
+        setShowExportMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Auto-verify if adminKey was already in storage
   useEffect(() => {
@@ -283,84 +306,22 @@ export default function AdminDashboard({ onExit }) {
     }
   };
 
-  // CSV Export utility
-  const exportToCSV = () => {
-    if (activeTab === "inquiries") {
-      const headers = [
-        "ID",
-        "Name",
-        "Company",
-        "Email",
-        "Phone",
-        "Requirement",
-        "Status",
-        "Message",
-        "Date",
-      ];
-      const rows = filteredInquiries.map((i) => [
-        i.id,
-        `"${(i.name || "").replace(/"/g, '""')}"`,
-        `"${(i.company || "").replace(/"/g, '""')}"`,
-        `"${i.email || ""}"`,
-        `"${i.phone || ""}"`,
-        `"${i.requirement || ""}"`,
-        `"${i.status || ""}"`,
-        `"${(i.message || "").replace(/"/g, '""')}"`,
-        `"${new Date(i.created_at).toLocaleDateString()}"`,
-      ]);
-      const csvContent =
-        "data:text/csv;charset=utf-8," +
-        [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute(
-        "download",
-        `oryenza_inquiries_${new Date().toISOString().slice(0, 10)}.csv`
-      );
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      const headers = [
-        "ID",
-        "Name",
-        "Role",
-        "Experience (Yrs)",
-        "Location",
-        "Email",
-        "Phone",
-        "Skills",
-        "Status",
-        "Resume Filename",
-        "Date",
-      ];
-      const rows = filteredCandidates.map((c) => [
-        c.id,
-        `"${(c.name || "").replace(/"/g, '""')}"`,
-        `"${(c.current_role || "").replace(/"/g, '""')}"`,
-        c.experience_years || 0,
-        `"${(c.preferred_location || "").replace(/"/g, '""')}"`,
-        `"${c.email || ""}"`,
-        `"${c.phone || ""}"`,
-        `"${(c.skills || "").replace(/"/g, '""')}"`,
-        `"${c.status || ""}"`,
-        `"${c.resume_original_name || c.resume_path || "None"}"`,
-        `"${new Date(c.created_at).toLocaleDateString()}"`,
-      ]);
-      const csvContent =
-        "data:text/csv;charset=utf-8," +
-        [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute(
-        "download",
-        `oryenza_candidates_${new Date().toISOString().slice(0, 10)}.csv`
-      );
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  // Data Export Handler (Excel, PDF, CSV)
+  const handleExport = (format) => {
+    const dataToExport =
+      activeTab === "inquiries" ? filteredInquiries : filteredCandidates;
+
+    if (!dataToExport || dataToExport.length === 0) {
+      alert("No records to export.");
+      return;
+    }
+
+    if (format === "excel") {
+      exportToExcel(activeTab, dataToExport);
+    } else if (format === "pdf") {
+      exportToPDF(activeTab, dataToExport);
+    } else if (format === "csv") {
+      exportToCSV(activeTab, dataToExport);
     }
   };
 
@@ -697,16 +658,106 @@ export default function AdminDashboard({ onExit }) {
               )}
             </select>
 
-            {/* Export CSV Button */}
-            <button
-              type="button"
-              className="admin-btn-outline"
-              onClick={exportToCSV}
-              title="Download table data as CSV"
-            >
-              <Download size={14} />
-              <span>Export CSV</span>
-            </button>
+            {/* Export Dropdown (Excel, PDF, CSV) */}
+            <div className="admin-export-dropdown-wrap" ref={exportMenuRef}>
+              <button
+                type="button"
+                className={`admin-btn-outline admin-export-trigger ${
+                  showExportMenu ? "active" : ""
+                }`}
+                onClick={() => setShowExportMenu((prev) => !prev)}
+                title="Export data to Excel, PDF, or CSV"
+                aria-haspopup="true"
+                aria-expanded={showExportMenu}
+              >
+                <Download size={14} />
+                <span>Export</span>
+                <ChevronDown
+                  size={13}
+                  className={`admin-export-chevron ${
+                    showExportMenu ? "rotate" : ""
+                  }`}
+                />
+              </button>
+
+              {showExportMenu && (
+                <div className="admin-export-menu" role="menu">
+                  <div className="admin-export-menu-header">
+                    <span>
+                      Export {activeTab === "inquiries" ? "Inquiries" : "Candidates"} (
+                      {activeTab === "inquiries"
+                        ? filteredInquiries.length
+                        : filteredCandidates.length}
+                      )
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="admin-export-item"
+                    onClick={() => {
+                      handleExport("excel");
+                      setShowExportMenu(false);
+                    }}
+                    role="menuitem"
+                  >
+                    <div className="admin-export-item-icon excel">
+                      <FileSpreadsheet size={16} />
+                    </div>
+                    <div className="admin-export-item-content">
+                      <div className="admin-export-item-title">
+                        Excel Spreadsheet (.xlsx)
+                      </div>
+                      <div className="admin-export-item-desc">
+                        Full formatted workbook
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="admin-export-item"
+                    onClick={() => {
+                      handleExport("pdf");
+                      setShowExportMenu(false);
+                    }}
+                    role="menuitem"
+                  >
+                    <div className="admin-export-item-icon pdf">
+                      <FileText size={16} />
+                    </div>
+                    <div className="admin-export-item-content">
+                      <div className="admin-export-item-title">
+                        PDF Document (.pdf)
+                      </div>
+                      <div className="admin-export-item-desc">
+                        Printable branded report
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="admin-export-item"
+                    onClick={() => {
+                      handleExport("csv");
+                      setShowExportMenu(false);
+                    }}
+                    role="menuitem"
+                  >
+                    <div className="admin-export-item-icon csv">
+                      <Download size={16} />
+                    </div>
+                    <div className="admin-export-item-content">
+                      <div className="admin-export-item-title">CSV File (.csv)</div>
+                      <div className="admin-export-item-desc">
+                        Standard raw delimited data
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

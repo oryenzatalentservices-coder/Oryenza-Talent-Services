@@ -837,6 +837,151 @@ html.oryenza-dark .admin-notes-textarea {
   color: #ffffff;
 }
 
+/* Export Dropdown Menu */
+.admin-export-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.admin-export-trigger {
+  position: relative;
+  cursor: pointer;
+}
+
+.admin-export-trigger.active {
+  border-color: var(--blue, #1565d8);
+  color: var(--blue, #1565d8);
+}
+
+.admin-export-chevron {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-left: 2px;
+}
+
+.admin-export-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+.admin-export-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 270px;
+  background: #ffffff;
+  border: 1px solid var(--line, #dce5ef);
+  border-radius: 14px;
+  box-shadow: 0 14px 40px rgba(11, 31, 58, 0.12);
+  padding: 8px;
+  z-index: 100;
+  animation: adminDropdownFade 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.oryenza-dark .admin-export-menu {
+  background: #0d1e35;
+  border-color: #244166;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes adminDropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-export-menu-header {
+  padding: 8px 10px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted, #64748b);
+  border-bottom: 1px solid var(--line, #e2e8f0);
+  margin-bottom: 6px;
+}
+
+html.oryenza-dark .admin-export-menu-header {
+  color: #94a3b8;
+  border-bottom-color: #1e3a5f;
+}
+
+.admin-export-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--ink, #122033);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+html.oryenza-dark .admin-export-item {
+  color: #f1f5f9;
+}
+
+.admin-export-item:hover {
+  background: #f1f5f9;
+}
+
+html.oryenza-dark .admin-export-item:hover {
+  background: #162c4b;
+}
+
+.admin-export-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-export-item-icon.excel {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.admin-export-item-icon.pdf {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.admin-export-item-icon.csv {
+  background: rgba(21, 101, 216, 0.12);
+  color: var(--blue, #1565d8);
+}
+
+.admin-export-item-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-export-item-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.admin-export-item-desc {
+  font-size: 0.74rem;
+  color: var(--muted, #64748b);
+  margin-top: 2px;
+}
+
+html.oryenza-dark .admin-export-item-desc {
+  color: #94a3b8;
+}
+
 /* Responsive Rules */
 @media (max-width: 768px) {
   .admin-navbar {
