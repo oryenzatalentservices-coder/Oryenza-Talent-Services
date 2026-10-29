@@ -816,6 +816,86 @@ html.oryenza-dark .admin-detail-header {
   border-color: #1e3a5f;
 }
 
+.admin-detail-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--navy, #0b192c);
+}
+
+html.oryenza-dark .admin-detail-title {
+  color: #ffffff;
+}
+
+.admin-detail-meta {
+  font-size: 0.82rem;
+  color: var(--muted, #64748b);
+  display: block;
+  margin-top: 2px;
+}
+
+html.oryenza-dark .admin-detail-meta {
+  color: #94a3b8;
+}
+
+.admin-detail-row {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--ink, #122033);
+}
+
+.admin-detail-row strong {
+  font-weight: 700;
+  color: var(--navy, #0b192c);
+  margin-right: 6px;
+}
+
+html.oryenza-dark .admin-detail-row {
+  color: #f1f5f9;
+}
+
+html.oryenza-dark .admin-detail-row strong {
+  color: #94a3b8;
+}
+
+.admin-detail-box {
+  background: #f8fafc;
+  border: 1px solid var(--line, #dce5ef);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--ink, #122033);
+}
+
+.admin-detail-box strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--navy, #0b192c);
+  margin-bottom: 6px;
+}
+
+.admin-detail-box p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #334155;
+  white-space: pre-wrap;
+}
+
+html.oryenza-dark .admin-detail-box {
+  background: #112642;
+  border-color: #244166;
+  color: #f1f5f9;
+}
+
+html.oryenza-dark .admin-detail-box strong {
+  color: #38bdf8;
+}
+
+html.oryenza-dark .admin-detail-box p {
+  color: #f1f5f9;
+}
+
 .admin-notes-textarea {
   width: 100%;
   padding: 12px;

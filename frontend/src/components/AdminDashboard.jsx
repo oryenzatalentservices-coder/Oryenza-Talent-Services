@@ -1055,12 +1055,12 @@ export default function AdminDashboard({ onExit }) {
           >
             <div className="admin-detail-header">
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.25rem", color: "var(--navy)" }}>
+                <h3 className="admin-detail-title">
                   {itemType === "inquiry"
                     ? "Client Inquiry Details"
                     : "Candidate Profile & CV"}
                 </h3>
-                <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                <span className="admin-detail-meta">
                   ID #{selectedItem.id} · Submitted{" "}
                   {new Date(selectedItem.created_at).toLocaleString()}
                 </span>
@@ -1077,18 +1077,18 @@ export default function AdminDashboard({ onExit }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {itemType === "inquiry" ? (
                 <>
-                  <div>
+                  <div className="admin-detail-row">
                     <strong>Client Name:</strong> {selectedItem.name}
                   </div>
                   {selectedItem.company && (
-                    <div>
+                    <div className="admin-detail-row">
                       <strong>Company:</strong> {selectedItem.company}
                     </div>
                   )}
-                  <div>
+                  <div className="admin-detail-row">
                     <strong>Requirement:</strong> {selectedItem.requirement}
                   </div>
-                  <div>
+                  <div className="admin-detail-row">
                     <strong>Contact:</strong>{" "}
                     <a href={`mailto:${selectedItem.email}`} style={{ color: "var(--blue)" }}>
                       {selectedItem.email}
@@ -1098,33 +1098,25 @@ export default function AdminDashboard({ onExit }) {
                       {selectedItem.phone}
                     </a>
                   </div>
-                  <div
-                    style={{
-                      background: "var(--off, #f7f9fc)",
-                      padding: "14px",
-                      borderRadius: "10px",
-                    }}
-                  >
+                  <div className="admin-detail-box">
                     <strong>Message / Mandate Brief:</strong>
-                    <p style={{ margin: "6px 0 0", whiteSpace: "pre-wrap" }}>
-                      {selectedItem.message}
-                    </p>
+                    <p>{selectedItem.message}</p>
                   </div>
                 </>
               ) : (
                 <>
-                  <div>
+                  <div className="admin-detail-row">
                     <strong>Full Name:</strong> {selectedItem.name}
                   </div>
-                  <div>
+                  <div className="admin-detail-row">
                     <strong>Current / Target Role:</strong>{" "}
                     {selectedItem.current_role} ({selectedItem.experience_years} years)
                   </div>
-                  <div>
+                  <div className="admin-detail-row">
                     <strong>Preferred Location:</strong>{" "}
                     {selectedItem.preferred_location}
                   </div>
-                  <div>
+                  <div className="admin-detail-row">
                     <strong>Contact:</strong>{" "}
                     <a href={`mailto:${selectedItem.email}`} style={{ color: "var(--blue)" }}>
                       {selectedItem.email}
@@ -1135,7 +1127,7 @@ export default function AdminDashboard({ onExit }) {
                     </a>
                   </div>
                   {selectedItem.portfolio_url && (
-                    <div>
+                    <div className="admin-detail-row">
                       <strong>Portfolio / LinkedIn:</strong>{" "}
                       <a
                         href={selectedItem.portfolio_url}
@@ -1147,17 +1139,9 @@ export default function AdminDashboard({ onExit }) {
                       </a>
                     </div>
                   )}
-                  <div
-                    style={{
-                      background: "var(--off, #f7f9fc)",
-                      padding: "14px",
-                      borderRadius: "10px",
-                    }}
-                  >
+                  <div className="admin-detail-box">
                     <strong>Key Skills & Tech Stack:</strong>
-                    <p style={{ margin: "6px 0 0", whiteSpace: "pre-wrap" }}>
-                      {selectedItem.skills}
-                    </p>
+                    <p>{selectedItem.skills}</p>
                   </div>
                   {selectedItem.resume_path && (
                     <div>
