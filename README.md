@@ -18,8 +18,10 @@ d:\Oryenza_Rushit/
 │   │   └── favicon.png
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Header.jsx        # Sticky navigation, CV modal & Admin shortcuts
+│   │   │   ├── Header.jsx        # Sticky navigation & quick CV modal trigger
+│   │   │   ├── IntroAnimation.jsx # Cinematic split-curtain opening animation
 │   │   │   ├── Hero.jsx          # Value proposition, dual CTAs, brand badge
+│   │   │   ├── HeroOrbit.jsx     # Interactive orbital rings visual simulation
 │   │   │   ├── StatsSection.jsx  # Animated KPI growth stats (clients, placements)
 │   │   │   ├── AboutSection.jsx  # Human-first philosophy & checklist
 │   │   │   ├── VisionMission.jsx # Purpose: Vision & Mission cards
@@ -27,17 +29,16 @@ d:\Oryenza_Rushit/
 │   │   │   ├── IndustriesSection.jsx # 3-row infinite marquee across 21 sectors
 │   │   │   ├── ProcessSection.jsx # 5-Stage interactive recruitment journey
 │   │   │   ├── FAQSection.jsx    # Accessible recruitment questions accordion
-│   │   │   ├── ClosingCTA.jsx    # High-conversion closing banner
 │   │   │   ├── ContactSection.jsx # Full-stack employer hiring intake form
 │   │   │   ├── CandidateModal.jsx # Job seeker intake & resume upload (.pdf, .doc)
-│   │   │   ├── AdminDashboard.jsx # Admin management portal & DB diagnostics
 │   │   │   ├── ThemeToggle.jsx   # Dark/Light mode toggle with persistence
 │   │   │   └── Footer.jsx        # Category channels, address, and live year
 │   │   ├── services/
 │   │   │   └── api.js            # Unified REST client with Vite proxy
 │   │   ├── styles/
 │   │   │   ├── index.css         # Design tokens, dark mode, responsive breakpoints
-│   │   │   └── admin.css         # Admin portal & candidate modal styles
+│   │   │   ├── intro.css         # Cinematic intro animation keyframes
+│   │   │   └── modal.css         # Candidate modal & file upload dropzone styles
 │   │   ├── App.jsx               # Master application container
 │   │   └── main.jsx
 │   ├── vite.config.js            # Configured proxy to backend (port 5000)
@@ -130,14 +131,5 @@ The backend is pre-configured for **MySQL 8.0** via `mysql2/promise`.
    ```
 3. Restart the backend — it will **automatically create the database `oryenza_talent_db` and tables**!
 
-> **Resilient Fallback Mode**: If MySQL credentials are not yet configured or MySQL is offline, the backend automatically uses **Local Persistence Mode** (`backend/data/local_db.json`). All inquiry submissions, resume uploads, and admin functions continue working seamlessly without errors.
+> **Resilient Fallback Mode**: If MySQL credentials are not yet configured or MySQL is offline, the backend automatically uses **Local Persistence Mode** (`backend/data/local_db.json`). All inquiry submissions and candidate resume uploads continue working seamlessly without errors.
 
----
-
-## 🛡️ Admin Management Portal
-
-Click the **Shield (🛡️)** icon in the header or the **"Admin Portal"** link in the footer to access:
-
-- **Client Inquiries Tab**: View all inbound hiring requirements, filter by status, update stages, or remove entries.
-- **Candidate Talent Pool Tab**: Review job applications, filter candidate statuses, and download/view uploaded resumes.
-- **MySQL Diagnostics Tab**: Real-time database connection diagnostics and table statistics.
