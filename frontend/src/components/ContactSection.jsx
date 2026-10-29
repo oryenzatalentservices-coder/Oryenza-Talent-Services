@@ -261,6 +261,29 @@ export default function ContactSection({
                   </svg>
                   <span>X (Twitter)</span>
                 </a>
+
+                <a
+                  className="social-btn facebook-btn"
+                  href="https://facebook.com/share/1E6GSDVZvw/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Oryenza on Facebook"
+                  title="Follow Oryenza on Facebook"
+                >
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <rect width="24" height="24" rx="5.5" fill="#1877F2" />
+                    <path
+                      fill="#ffffff"
+                      d="M15.117 8.008V6.156c0-.853.567-1.05 1.01-1.05h1.83V2.05L15.44 2C12.65 2 12 3.738 12 5.922v2.086H9.5v3.134H12V22h3.917V11.142h2.825l.37-3.134h-3.995z"
+                    />
+                  </svg>
+                  <span>Facebook</span>
+                </a>
               </div>
             </div>
           </div>

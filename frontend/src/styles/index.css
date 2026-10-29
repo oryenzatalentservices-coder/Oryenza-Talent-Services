@@ -1811,6 +1811,11 @@ textarea {
   border-color: #0f1419;
   background: #f7f9fa;
 }
+.social-btn.facebook-btn:hover {
+  color: #1877f2;
+  border-color: #1877f2;
+  background: #f0f6ff;
+}
 
 /* Footer Social Icons ("last part logo type 3 icon") */
 .footer-social-row {
@@ -1849,6 +1854,9 @@ textarea {
 }
 .footer-social-icon.x-twitter:hover svg {
   box-shadow: 0 6px 20px rgba(255, 255, 255, 0.35);
+}
+.footer-social-icon.facebook:hover svg {
+  box-shadow: 0 6px 20px rgba(24, 119, 242, 0.6);
 }
 
 /* Footer */
@@ -2494,6 +2502,12 @@ html.oryenza-dark .social-btn.x-btn:hover {
   color: #ffffff;
   border-color: #ffffff;
   background: #14243b;
+}
+
+html.oryenza-dark .social-btn.facebook-btn:hover {
+  color: #60a5fa;
+  border-color: #1877f2;
+  background: #10233e;
 }
 
 html.oryenza-dark .form-card h3 {
