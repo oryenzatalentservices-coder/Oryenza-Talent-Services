@@ -472,8 +472,18 @@ function frame(t) {
   $('wrap').style.opacity = Math.min(cl(t / 0.3), cl((END + FADE - t) / FADE));
 }
 
-let clock = 0, last = null;
-document.addEventListener('visibilitychange', () => { last = null; });
+let clock = 0.4, last = null;
+let isPlaying = false;
+let animFrameId = null;
+
+// Initialize resting Stage 01 state
+frame(0.4);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    last = null;
+  }
+});
 
 window.addEventListener('beforeprint', () => {
   frame(16.0);
@@ -482,22 +492,55 @@ window.addEventListener('beforeprint', () => {
 const urlP = new URLSearchParams(window.location.search);
 const fixedT = urlP.has('t') ? parseFloat(urlP.get('t')) : null;
 
+function loop(n) {
+  if (!isPlaying) return;
+  if (last !== null) {
+    const dt = (n - last) / 1000;
+    if (dt < 0.2) clock += dt;
+  }
+  last = n;
+  if (clock >= END + FADE) clock = 0;
+  frame(clock);
+  animFrameId = requestAnimationFrame(loop);
+}
+
+function startAnimation() {
+  if (isPlaying) return;
+  isPlaying = true;
+  clock = 0.4;
+  last = null;
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(loop);
+}
+
+function resetAnimation() {
+  isPlaying = false;
+  last = null;
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  clock = 0.4;
+  frame(0.4);
+}
+
 if (fixedT !== null) {
   frame(fixedT);
 } else if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   frame(END - 0.5);
 } else {
-  (function loop(n) {
-    if (last !== null) {
-      const dt = (n - last) / 1000;
-      if (dt < 0.2) clock += dt;
-    }
-    last = n;
-    if (clock >= END + FADE) clock = 0;
-    frame(clock);
-    requestAnimationFrame(loop);
-  })(performance.now());
+  // If loaded directly in a browser tab without an iframe parent, auto-start after brief delay
+  if (window.parent === window) {
+    setTimeout(startAnimation, 200);
+  }
 }
+
+// Receive play/reset triggers from parent window's scroll IntersectionObserver
+window.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'START_ANIMATION') {
+    startAnimation();
+  } else if (event.data.type === 'RESET_ANIMATION') {
+    resetAnimation();
+  }
+});
 </script>
 </body>
 </html>

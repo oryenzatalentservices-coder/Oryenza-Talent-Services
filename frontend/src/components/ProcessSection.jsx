@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ChevronRight,
   Layers,
@@ -11,6 +11,52 @@ import {
 
 export default function ProcessSection() {
   const [selectedStage, setSelectedStage] = useState(0);
+  const containerRef = useRef(null);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const iframeWindow = iframeRef.current?.contentWindow;
+          if (!iframeWindow) return;
+
+          if (entry.isIntersecting) {
+            iframeWindow.postMessage({ type: "START_ANIMATION" }, "*");
+          } else {
+            iframeWindow.postMessage({ type: "RESET_ANIMATION" }, "*");
+          }
+        });
+      },
+      {
+        threshold: 0.25, // Triggers when 25% of the showcase is scrolled into view
+      }
+    );
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const handleIframeLoad = () => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const inView =
+      rect.top < window.innerHeight * 0.85 && rect.bottom > window.innerHeight * 0.15;
+    const iframeWindow = iframeRef.current?.contentWindow;
+    if (iframeWindow) {
+      if (inView) {
+        iframeWindow.postMessage({ type: "START_ANIMATION" }, "*");
+      } else {
+        iframeWindow.postMessage({ type: "RESET_ANIMATION" }, "*");
+      }
+    }
+  };
 
   const stages = [
     {
@@ -95,9 +141,11 @@ export default function ProcessSection() {
         </div>
 
         {/* 5-Stage Recruitment Journey Logo Animation Showcase */}
-        <div className="oryenza-final-process">
+        <div className="oryenza-final-process" ref={containerRef}>
           <div className="process-iframe-container">
             <iframe
+              ref={iframeRef}
+              onLoad={handleIframeLoad}
               allow="autoplay"
               loading="eager"
               src="/assets/process_journey.html"
