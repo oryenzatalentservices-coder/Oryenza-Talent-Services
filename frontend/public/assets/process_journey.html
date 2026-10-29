@@ -8,48 +8,26 @@
 <title>Oryenza 5-Stage Recruitment Journey Animation</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Base Light Theme Tokens (Matches Oryenza Official Brand Identity) */
+/* Pure Clean White Aesthetic - Maximum Contrast & Brand Legibility */
 :root,
-html[data-theme="light"] {
+html,
+body {
   --bg: #ffffff;
   --text: #0b192c;
   --num: #1565d8;
-  --track: #dce6f3;
+  --track: #e8eef7;
   --glow: #27b5ff;
   --beam: #1f6bff;
   --pulse: #00b8d9;
   --runner-bg: #ffffff;
   --runner-border: #1565d8;
   --bubble-bg: #ffffff;
-  --bubble-border: #bfe3ff;
+  --bubble-border: #cbd5e1;
   --bubble-text: #0b192c;
-  --bubble-shadow: 0 10px 28px rgba(11, 25, 44, 0.12);
+  --bubble-shadow: 0 8px 24px rgba(11, 25, 44, 0.10);
 }
 
-/* Inside embedded light parent with .pale-section */
-html.in-iframe[data-theme="light"] {
-  --bg: #f4f7fb;
-}
-
-/* Dark Theme Tokens (Matches .pale-section #0a1a30 in dark mode) */
-:root[data-theme="dark"],
-html.oryenza-dark {
-  --bg: #0a1a30;
-  --text: #f1f5f9;
-  --num: #38bdf8;
-  --track: #1e3a5f;
-  --glow: #38bdf8;
-  --beam: #1565d8;
-  --pulse: #38bdf8;
-  --runner-bg: #0f172a;
-  --runner-border: #38bdf8;
-  --bubble-bg: #0f172a;
-  --bubble-border: #334155;
-  --bubble-text: #f1f5f9;
-  --bubble-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-}
-
-/* Print Mode: High-Contrast Clean White for Document/PDF Printouts */
+/* Print Mode */
 @media print {
   html, body {
     background: #ffffff !important;
@@ -80,11 +58,6 @@ html.oryenza-dark {
     -webkit-mask: none !important;
     transform: none !important;
   }
-}
-
-html.oryenza-dark #tk,
-html[data-theme="dark"] #tk {
-  filter: url(#logo-glow);
 }
 
 * {
@@ -300,56 +273,17 @@ svg {
 </div>
 
 <script>
-// Live theme synchronization with parent document or standalone controls
+// Enforce pristine white background & optimal high-contrast typography
 function syncTheme() {
   try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const themeParam = urlParams.get('theme');
-    
-    let isDark = false;
-    if (themeParam === 'dark') {
-      isDark = true;
-    } else if (themeParam === 'light') {
-      isDark = false;
-    } else if (window.parent && window.parent !== window && window.parent.document) {
-      // Embedded inside parent application: strictly follow parent site state
-      const parentDoc = window.parent.document.documentElement;
-      isDark = parentDoc.classList.contains('oryenza-dark') || parentDoc.getAttribute('data-theme') === 'dark';
-    } else {
-      // Standalone direct preview: default to light brand theme unless localStorage specifies dark
-      const local = localStorage.getItem('oryenza_theme');
-      isDark = (local === 'dark');
-    }
-
-    const isInIframe = window.parent && window.parent !== window;
-    if (isInIframe) {
-      document.documentElement.classList.add('in-iframe');
-    } else {
-      document.documentElement.classList.remove('in-iframe');
-    }
-
-    if (isDark) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.documentElement.classList.add('oryenza-dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-      document.documentElement.classList.remove('oryenza-dark');
-    }
-  } catch (e) {
     document.documentElement.setAttribute('data-theme', 'light');
-  }
+    document.documentElement.classList.remove('oryenza-dark');
+    document.documentElement.style.background = '#ffffff';
+    if (document.body) document.body.style.background = '#ffffff';
+  } catch (e) {}
 }
 
 syncTheme();
-
-try {
-  if (window.parent && window.parent !== window && window.parent.document) {
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
-  }
-} catch (e) {}
-
-window.addEventListener('storage', syncTheme);
 
 // Complete Stage Metadata for ALL Steps (01 to 06)
 const STAGES = [

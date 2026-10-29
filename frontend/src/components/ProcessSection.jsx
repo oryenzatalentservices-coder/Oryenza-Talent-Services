@@ -149,7 +149,7 @@ export default function ProcessSection() {
               allow="autoplay"
               loading="eager"
               src="/assets/process_journey.html"
-              style={{ background: "transparent" }}
+              style={{ background: "#ffffff" }}
               title="Oryenza 5-stage recruitment process journey animation"
             />
           </div>

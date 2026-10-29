@@ -1253,17 +1253,21 @@ html.oryenza-dark .orbit-tag {
 /* 5-Stage Recruitment Journey Animation Showcase */
 .oryenza-final-process {
   margin-top: 0;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   position: relative;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 10px 30px rgba(11, 25, 44, 0.04);
+  overflow: hidden;
 }
 
 html.oryenza-dark .oryenza-final-process {
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
 }
 
 .process-iframe-container {
