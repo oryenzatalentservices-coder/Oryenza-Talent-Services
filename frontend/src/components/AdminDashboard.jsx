@@ -25,10 +25,38 @@ import {
   ChevronRight,
   Database,
   Calendar,
+  Sun,
+  Moon,
 } from "lucide-react";
 import "../styles/admin.css";
 
 export default function AdminDashboard({ onExit }) {
+  // Theme state synced with localStorage and documentElement
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("oryenza_theme");
+      if (saved) return saved === "dark";
+      return document.documentElement.classList.contains("oryenza-dark");
+    }
+    return true;
+  });
+
+  const toggleTheme = () => {
+    setIsDark((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.add("oryenza-dark");
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("oryenza_theme", "dark");
+      } else {
+        document.documentElement.classList.remove("oryenza-dark");
+        document.documentElement.setAttribute("data-theme", "light");
+        localStorage.setItem("oryenza_theme", "light");
+      }
+      return next;
+    });
+  };
+
   const [adminKey, setAdminKey] = useState(() => {
     return (
       sessionStorage.getItem("oryenza_admin_key") ||
@@ -353,13 +381,30 @@ export default function AdminDashboard({ onExit }) {
       <div className="admin-portal-wrapper">
         <div className="admin-auth-screen">
           <div className="admin-auth-card">
+            {/* Theme Switcher Button on Auth Screen */}
+            <div className="admin-auth-theme-floating">
+              <button
+                type="button"
+                className="admin-theme-toggle-btn"
+                onClick={toggleTheme}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                title={isDark ? "Activate light mode" : "Activate dark mode"}
+              >
+                {isDark ? <Sun size={15} /> : <Moon size={15} />}
+                <span>{isDark ? "Light" : "Dark"}</span>
+              </button>
+            </div>
+
             <div className="admin-auth-logo-wrap">
-              <img
-                src="/assets/oryenza_logo_clean.png"
-                alt="Oryenza logo"
-                width="72"
-                height="56"
-              />
+              <div className="admin-brand-pill large">
+                <img
+                  src="/assets/oryenza_logo_clean.png"
+                  alt="Oryenza Talent Services logo"
+                  className="brand-logo"
+                  width="90"
+                  height="68"
+                />
+              </div>
             </div>
             <div className="admin-auth-shield-badge">
               <Shield size={14} />
@@ -446,16 +491,31 @@ export default function AdminDashboard({ onExit }) {
       <header className="admin-navbar">
         <div className="admin-nav-inner">
           <div className="admin-brand-lockup">
-            <img
-              src="/assets/oryenza_logo_clean.png"
-              alt="Oryenza logo"
-              width="54"
-              height="42"
-            />
+            <div className="admin-brand-pill">
+              <img
+                src="/assets/oryenza_logo_clean.png"
+                alt="Oryenza Talent Services logo"
+                className="brand-logo"
+                width="76"
+                height="58"
+              />
+            </div>
             <span className="admin-brand-tag">Admin Management</span>
           </div>
 
           <div className="admin-nav-actions">
+            {/* Theme Toggle Button */}
+            <button
+              type="button"
+              className="admin-theme-toggle-btn"
+              onClick={toggleTheme}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              title={isDark ? "Activate light mode" : "Activate dark mode"}
+            >
+              {isDark ? <Sun size={15} /> : <Moon size={15} />}
+              <span>{isDark ? "Light mode" : "Dark mode"}</span>
+            </button>
+
             <button
               type="button"
               className="admin-btn-outline"

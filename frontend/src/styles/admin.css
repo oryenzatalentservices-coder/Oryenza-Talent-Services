@@ -46,11 +46,97 @@ html.oryenza-dark .admin-auth-card {
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
 }
 
+/* Universal Brand Logo Pill - Identical to Main Website */
+.admin-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  text-decoration: none;
+  flex-shrink: 0;
+  background: #ffffff;
+  padding: 6px 14px;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(11, 31, 58, 0.08);
+  border: 1px solid rgba(220, 229, 239, 0.9);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+html.oryenza-dark .admin-brand-pill {
+  background: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.5) !important;
+}
+
+.admin-brand-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(11, 31, 58, 0.15);
+}
+
+.admin-brand-pill .brand-logo {
+  width: 76px;
+  height: auto;
+  max-height: 58px;
+  object-fit: contain;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+  transition: transform 0.25s ease;
+}
+
+.admin-brand-pill:hover .brand-logo {
+  transform: scale(1.02);
+}
+
+.admin-brand-pill.large {
+  padding: 8px 18px;
+  border-radius: 18px;
+}
+
+.admin-brand-pill.large .brand-logo {
+  width: 90px;
+  max-height: 68px;
+}
+
+/* Admin Theme Switcher Buttons */
+.admin-theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line, #dce5ef);
+  background: #ffffff;
+  color: var(--ink, #122033);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+html.oryenza-dark .admin-theme-toggle-btn {
+  background: #112642;
+  border-color: #244166;
+  color: #e2e8f0;
+}
+
+.admin-theme-toggle-btn:hover {
+  border-color: var(--blue, #1565d8);
+  color: var(--blue, #1565d8);
+  transform: translateY(-1px);
+}
+
+.admin-auth-theme-floating {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 10;
+}
+
 .admin-auth-logo-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .admin-auth-shield-badge {
