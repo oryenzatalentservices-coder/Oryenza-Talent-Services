@@ -214,5 +214,21 @@ export const api = {
   async getHealth() {
     return await request(`${API_BASE}/stats/health`, {}, "Failed to fetch health");
   },
+
+  // Admin Verification & Resume Access
+  async verifyAdminKey(adminKey) {
+    return await this.getInquiries("all", adminKey);
+  },
+
+  getResumeDownloadUrl(filename, adminKey = null) {
+    const key =
+      adminKey ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+          window.localStorage?.getItem("oryenza_admin_key") ||
+          ""
+        : "");
+    return `${API_BASE}/candidates/resume/${encodeURIComponent(filename)}?admin_key=${encodeURIComponent(key)}`;
+  },
 };
 

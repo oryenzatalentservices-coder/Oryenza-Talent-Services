@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import StatsSection from "./components/StatsSection";
@@ -13,14 +13,78 @@ import Footer from "./components/Footer";
 import ThemeToggle from "./components/ThemeToggle";
 import CandidateModal from "./components/CandidateModal";
 import IntroAnimation from "./components/IntroAnimation";
+import AdminDashboard from "./components/AdminDashboard";
 
 import "./styles/index.css";
 import "./styles/modal.css";
 
+function checkIsAdminUrl() {
+  if (typeof window === "undefined") return false;
+  return (
+    window.location.pathname === "/admin" ||
+    window.location.hash === "#admin" ||
+    new URLSearchParams(window.location.search).get("view") === "admin"
+  );
+}
+
 export default function App() {
+  const [isAdminView, setIsAdminView] = useState(checkIsAdminUrl);
   const [candidateModalOpen, setCandidateModalOpen] = useState(false);
   const [selectedRequirement, setSelectedRequirement] = useState("");
-  const [introActive, setIntroActive] = useState(true);
+  const [introActive, setIntroActive] = useState(() => !checkIsAdminUrl());
+
+  // Listen to browser forward/back buttons and hash changes
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const isAdmin = checkIsAdminUrl();
+      setIsAdminView(isAdmin);
+      if (isAdmin) setIntroActive(false);
+    };
+
+    window.addEventListener("popstate", handleLocationChange);
+    window.addEventListener("hashchange", handleLocationChange);
+    return () => {
+      window.removeEventListener("popstate", handleLocationChange);
+      window.removeEventListener("hashchange", handleLocationChange);
+    };
+  }, []);
+
+  // Secret keyboard shortcut: Ctrl + Shift + A (or Alt + A) to toggle Admin Portal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "a") ||
+        (e.altKey && e.key.toLowerCase() === "a")
+      ) {
+        e.preventDefault();
+        setIsAdminView((prev) => {
+          const next = !prev;
+          if (next) {
+            window.history.pushState(null, "", "/admin");
+            setIntroActive(false);
+          } else {
+            window.history.pushState(null, "", "/");
+          }
+          return next;
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Render Private Admin Portal
+  if (isAdminView) {
+    return (
+      <AdminDashboard
+        onExit={() => {
+          setIsAdminView(false);
+          window.history.pushState(null, "", "/");
+        }}
+      />
+    );
+  }
 
   return (
     <div className={`app-container ${introActive ? "intro-running" : ""}`}>
@@ -80,3 +144,4 @@ export default function App() {
     </div>
   );
 }
+
