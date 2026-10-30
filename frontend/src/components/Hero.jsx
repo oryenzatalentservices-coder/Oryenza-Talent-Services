@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUpRight, ArrowDown, UserCheck } from "lucide-react";
+import { ArrowUpRight, ArrowDown, UserCheck, Sparkles } from "lucide-react";
 import HeroOrbit from "./HeroOrbit";
 
 export default function Hero({
@@ -34,21 +34,6 @@ export default function Hero({
               requirements.
             </p>
 
-            {/* COMBINED PROMINENT ATTRACTIVE AI CTA BUTTON */}
-            <div className="hero-ai-cta-banner">
-              <button
-                type="button"
-                className="btn-hero-ai btn-analyze-cv"
-                onClick={handleOpenAiSuite}
-                title="Upload resume to analyze quality and check your ATS compatibility score"
-              >
-                <span className="btn-ai-glow"></span>
-                <span className="btn-ai-icon rocket-anim">🚀</span>
-                <span className="btn-ai-text">Analyze CV & Check ATS Score</span>
-                <span className="btn-ai-pill">Free AI</span>
-              </button>
-            </div>
-
             <div className="hero-actions">
               <a
                 className="btn primary"
@@ -73,6 +58,16 @@ export default function Hero({
               >
                 <UserCheck size={17} className="hero-candidate-icon" />
                 <span>Apply as Candidate</span>
+              </button>
+              <button
+                type="button"
+                className="btn hero-ai-btn"
+                onClick={handleOpenAiSuite}
+                title="Upload resume to analyze quality and check your ATS compatibility score"
+              >
+                <Sparkles size={16} className="hero-ai-btn-icon" />
+                <span>Analyze CV & Check ATS Score</span>
+                <span className="hero-ai-badge">Free AI</span>
               </button>
             </div>
 
