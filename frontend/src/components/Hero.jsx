@@ -2,7 +2,11 @@ import React from "react";
 import { ArrowUpRight, ArrowDown, UserCheck } from "lucide-react";
 import HeroOrbit from "./HeroOrbit";
 
-export default function Hero({ onOpenCandidateModal }) {
+export default function Hero({
+  onOpenCandidateModal,
+  onOpenAnalyzeCv,
+  onOpenAtsScore,
+}) {
   const handleScroll = (e, targetId) => {
     e.preventDefault();
     const elem = document.querySelector(targetId);
@@ -26,6 +30,33 @@ export default function Hero({ onOpenCandidateModal }) {
               industries - with a recruitment approach shaped around your real
               requirements.
             </p>
+
+            {/* TWO PROMINENT ATTRACTIVE CTA BUTTONS */}
+            <div className="hero-ai-cta-banner">
+              <button
+                type="button"
+                className="btn-hero-ai btn-analyze-cv"
+                onClick={onOpenAnalyzeCv}
+                title="Upload resume and get an instant AI evaluation with ATS score"
+              >
+                <span className="btn-ai-glow"></span>
+                <span className="btn-ai-icon rocket-anim">🚀</span>
+                <span className="btn-ai-text">Analyze My CV</span>
+                <span className="btn-ai-pill">Free AI</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn-hero-ai btn-check-ats"
+                onClick={onOpenAtsScore}
+                title="Check your resume ATS compatibility against industry criteria or job descriptions"
+              >
+                <span className="btn-ai-glass-sheen"></span>
+                <span className="btn-ai-icon target-anim">🎯</span>
+                <span className="btn-ai-text">Check My ATS Score</span>
+                <span className="btn-ai-pill glass">ATS 100</span>
+              </button>
+            </div>
 
             <div className="hero-actions">
               <a

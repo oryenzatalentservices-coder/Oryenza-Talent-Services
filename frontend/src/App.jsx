@@ -14,6 +14,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import CandidateModal from "./components/CandidateModal";
 import IntroAnimation from "./components/IntroAnimation";
 import AdminDashboard from "./components/AdminDashboard";
+import ResumeAtsModal from "./components/ResumeAtsModal";
 
 import "./styles/index.css";
 import "./styles/modal.css";
@@ -35,6 +36,8 @@ function checkIsAdminUrl() {
 export default function App() {
   const [isAdminView, setIsAdminView] = useState(checkIsAdminUrl);
   const [candidateModalOpen, setCandidateModalOpen] = useState(false);
+  const [atsModalOpen, setAtsModalOpen] = useState(false);
+  const [atsModalMode, setAtsModalMode] = useState("analyze");
   const [selectedRequirement, setSelectedRequirement] = useState("");
   const [introActive, setIntroActive] = useState(() => !checkIsAdminUrl());
 
@@ -103,7 +106,17 @@ export default function App() {
 
       <main>
         {/* Hero Section */}
-        <Hero onOpenCandidateModal={() => setCandidateModalOpen(true)} />
+        <Hero
+          onOpenCandidateModal={() => setCandidateModalOpen(true)}
+          onOpenAnalyzeCv={() => {
+            setAtsModalMode("analyze");
+            setAtsModalOpen(true);
+          }}
+          onOpenAtsScore={() => {
+            setAtsModalMode("ats");
+            setAtsModalOpen(true);
+          }}
+        />
 
         {/* Dynamic / Animated KPI Stats */}
         <StatsSection />
@@ -145,6 +158,14 @@ export default function App() {
       <CandidateModal
         isOpen={candidateModalOpen}
         onClose={() => setCandidateModalOpen(false)}
+      />
+
+      {/* Resume & ATS Intelligence Suite Modal */}
+      <ResumeAtsModal
+        isOpen={atsModalOpen}
+        onClose={() => setAtsModalOpen(false)}
+        initialMode={atsModalMode}
+        onApplyAsCandidate={() => setCandidateModalOpen(true)}
       />
     </div>
   );

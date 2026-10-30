@@ -7,6 +7,7 @@ const { initDb } = require("./config/db");
 const inquiryRoutes = require("./routes/inquiryRoutes");
 const candidateRoutes = require("./routes/candidateRoutes");
 const statsRoutes = require("./routes/statsRoutes");
+const resumeRoutes = require("./routes/resumeRoutes");
 const { apiLimiter } = require("./middleware/rateLimiter");
 const { sanitizeInputs } = require("./middleware/sanitize");
 
@@ -99,6 +100,7 @@ app.use("/api", sanitizeInputs);
 app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/candidates", candidateRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/resume", resumeRoutes);
 
 // Root Service Verification
 app.get("/", (req, res) => {

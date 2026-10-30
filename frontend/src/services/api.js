@@ -182,6 +182,18 @@ export const api = {
     );
   },
 
+  // Resume & ATS Analyzer
+  async analyzeResume(formData) {
+    return await request(
+      `${API_BASE}/resume/analyze`,
+      {
+        method: "POST",
+        body: formData,
+      },
+      "Failed to analyze resume document"
+    );
+  },
+
   // Candidate Applications (Public Submission with Resume file)
   async submitCandidate(formData) {
     return await request(
