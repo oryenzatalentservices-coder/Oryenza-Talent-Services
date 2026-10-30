@@ -374,34 +374,162 @@ iframe {
 }
 
 /* ========================================================
-   FEATURED AI HERO BUTTON (Next to Apply as Candidate)
+   FEATURED AI HERO CALL-TO-ACTION BUTTONS (CTA 1 & CTA 2)
    ======================================================== */
-.hero-ai-btn {
-  background: linear-gradient(135deg, #1565d8 0%, #0099cc 100%);
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 4px 16px rgba(0, 184, 217, 0.28);
+.hero-ai-cta-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 16px;
+  flex-wrap: wrap;
+}
+
+.btn-hero-ai {
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  padding: 12px 22px;
+  min-height: 48px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.94rem;
+  font-weight: 750;
+  text-decoration: none;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.hero-ai-btn:hover {
-  background: linear-gradient(135deg, #0f55bb 0%, #0088b8 100%);
+.btn-hero-ai .btn-ai-icon {
+  font-size: 1.12rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-hero-ai .btn-ai-text {
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.btn-hero-ai .btn-ai-pill {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-left: 2px;
+  line-height: 1.2;
+}
+
+/* CTA 1: 🚀 Analyze My CV (Primary Gradient with Glow Effect & Smooth Hover) */
+.btn-analyze-cv {
+  background: linear-gradient(135deg, #1565d8 0%, #0ea5e9 100%);
+  background-size: 200% 200%;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 18px rgba(14, 165, 233, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: gradientShift 6s ease infinite;
+}
+
+.btn-analyze-cv .btn-ai-pill {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+}
+
+.btn-analyze-cv .btn-ai-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.5), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.btn-analyze-cv > * {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-analyze-cv:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 184, 217, 0.45);
-  color: #ffffff !important;
+  background: linear-gradient(135deg, #0f55bb 0%, #0284c7 100%);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
-.hero-ai-btn svg {
-  color: #a5f3fc;
-  transition: transform 0.3s ease;
+.btn-analyze-cv:hover .btn-ai-glow {
+  opacity: 1;
 }
 
-.hero-ai-btn:hover svg {
-  transform: rotate(15deg) scale(1.15);
+.btn-analyze-cv:hover .rocket-anim {
+  transform: rotate(-14deg) scale(1.18);
+}
+
+/* CTA 2: 🎯 Check My ATS Score (Secondary Glassmorphism Design with Target Icon & Smooth Hover) */
+.btn-check-ats {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid #cfe0f6;
+  color: var(--navy);
+  box-shadow: 0 2px 10px rgba(11, 31, 58, 0.04);
+}
+
+.btn-check-ats .btn-ai-pill.glass {
+  background: #eaf3ff;
+  color: #1565d8;
+  border: 1px solid #bfdbfe;
+}
+
+.btn-check-ats:hover {
+  transform: translateY(-2px);
+  background: #ffffff;
+  border-color: #1565d8;
+  color: #1565d8;
+  box-shadow: 0 8px 22px rgba(21, 101, 216, 0.16);
+}
+
+.btn-check-ats:hover .target-anim {
+  transform: scale(1.18) rotate(15deg);
+}
+
+.btn-check-ats .btn-ai-glass-sheen {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(21, 101, 216, 0.15),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.btn-check-ats:hover .btn-ai-glass-sheen {
+  left: 150%;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .hero-actions {
@@ -633,7 +761,7 @@ html.oryenza-dark .orbit-tag {
 
 .orbit-tag-global {
   right: 3.5%;
-  bottom: 19%;
+  bottom: 10%;
 }
 
 .orbit-pill {
@@ -2157,16 +2285,26 @@ html.oryenza-dark .menu {
 }
 
 /* Buttons in Dark Mode */
-html.oryenza-dark .hero-ai-btn {
-  background: linear-gradient(135deg, #1565d8 0%, #0284c7 100%);
-  border-color: rgba(56, 189, 248, 0.35);
-  color: #ffffff !important;
-  box-shadow: 0 4px 18px rgba(0, 184, 217, 0.35);
+html.oryenza-dark .btn-check-ats {
+  background: rgba(16, 37, 65, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: #274870;
+  color: #f3f7ff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-html.oryenza-dark .hero-ai-btn:hover {
-  background: linear-gradient(135deg, #1971f0 0%, #0ea5e9 100%);
-  box-shadow: 0 8px 26px rgba(56, 189, 248, 0.45);
+html.oryenza-dark .btn-check-ats .btn-ai-pill.glass {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+html.oryenza-dark .btn-check-ats:hover {
+  background: #193a63;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 8px 26px rgba(56, 189, 248, 0.28);
 }
 
 html.oryenza-dark .btn.primary {
@@ -2849,6 +2987,19 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
     word-break: break-word;
   }
 
+  .hero-ai-cta-banner {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    margin: 16px 0 16px;
+  }
+  .hero-ai-cta-banner .btn-hero-ai {
+    width: 100%;
+    padding: 12px 18px;
+    justify-content: center;
+  }
+
   .hero-actions {
     display: flex;
     flex-direction: column;
@@ -2876,16 +3027,6 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
   .hero-orbit-stage {
     width: min(100%, 340px);
     margin: 20px auto 0;
-  }
-
-  .orbit-tag-global {
-    right: 2.5%;
-    bottom: 21%;
-  }
-
-  .orbit-pill-tagline {
-    bottom: 4px;
-    max-width: 92%;
   }
 
   .section {
@@ -3102,16 +3243,6 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
     width: min(100%, 300px);
   }
 
-  .orbit-tag-global {
-    right: 2%;
-    bottom: 23%;
-  }
-
-  .orbit-pill-tagline {
-    bottom: 4px;
-    max-width: 94%;
-  }
-
   .orbit-pill {
     padding: 5px 12px 5px 7px;
     font-size: 11.5px;
@@ -3178,16 +3309,6 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
     width: min(100%, 270px);
   }
 
-  .orbit-tag-global {
-    right: 2%;
-    bottom: 25%;
-  }
-
-  .orbit-pill-tagline {
-    bottom: 2px;
-    max-width: 95%;
-  }
-
   .orbit-pill {
     padding: 4px 9px 4px 6px;
     font-size: 11px;
@@ -3249,16 +3370,6 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
 
   .hero-orbit-stage {
     width: min(100%, 240px);
-  }
-
-  .orbit-tag-global {
-    right: 1.5%;
-    bottom: 26%;
-  }
-
-  .orbit-pill-tagline {
-    bottom: 2px;
-    max-width: 96%;
   }
 
   .growth-grid {
