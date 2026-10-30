@@ -448,7 +448,7 @@ export default function ResumeAtsModal({
               onClick={() => handleSwitchMode("analyze")}
             >
               <Rocket size={17} />
-              <span>🚀 Analyze My CV</span>
+              <span>Analyze My CV</span>
             </button>
             <button
               type="button"
@@ -456,7 +456,7 @@ export default function ResumeAtsModal({
               onClick={() => handleSwitchMode("ats")}
             >
               <Target size={17} />
-              <span>🎯 Check My ATS Score</span>
+              <span>Check My ATS Score</span>
             </button>
           </div>
         )}
