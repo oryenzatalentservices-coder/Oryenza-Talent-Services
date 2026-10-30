@@ -67,7 +67,6 @@ export default function Hero({
               >
                 <Sparkles size={16} className="hero-ai-btn-icon" />
                 <span>Analyze CV & Check ATS Score</span>
-                <span className="hero-ai-badge">Free AI</span>
               </button>
             </div>
 
