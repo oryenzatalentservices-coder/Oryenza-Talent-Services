@@ -108,6 +108,10 @@ export default function App() {
         {/* Hero Section */}
         <Hero
           onOpenCandidateModal={() => setCandidateModalOpen(true)}
+          onOpenResumeAts={() => {
+            setAtsModalMode("analyze");
+            setAtsModalOpen(true);
+          }}
           onOpenAnalyzeCv={() => {
             setAtsModalMode("analyze");
             setAtsModalOpen(true);
