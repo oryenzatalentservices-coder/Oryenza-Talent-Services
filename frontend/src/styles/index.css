@@ -556,8 +556,8 @@ html.oryenza-dark {
 .orbit-inner-track {
   left: 50%;
   top: 50%;
-  width: 41cqi;
-  height: 41cqi;
+  width: 37cqi;
+  height: 37cqi;
   transform: translate(-50%, -50%);
   border: 1.5px dashed var(--orbit-line);
   border-radius: 50%;
@@ -568,8 +568,8 @@ html.oryenza-dark {
 .orbit-outer-track {
   left: 50%;
   top: 50%;
-  width: 65cqi;
-  height: 65cqi;
+  width: 59cqi;
+  height: 59cqi;
   transform: translate(-50%, -50%);
   border: 1px dotted var(--orbit-line);
   border-radius: 50%;
@@ -668,7 +668,7 @@ html.oryenza-dark .orbit-tag {
 
 .orbit-tag-global {
   right: 3.5%;
-  bottom: 20%;
+  bottom: 14.5%;
 }
 
 .orbit-pill {
@@ -2938,17 +2938,23 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
 
   .hero-orbit-stage {
     width: min(100%, 340px);
+    aspect-ratio: 500 / 545;
     margin: 20px auto 0;
+  }
+
+  .orbit-tag-india {
+    left: 2.5%;
+    top: 9%;
   }
 
   .orbit-tag-global {
     right: 2.5%;
-    bottom: 21%;
+    bottom: 14.5%;
   }
 
   .orbit-pill-tagline {
     bottom: 4px;
-    max-width: 92%;
+    max-width: 90%;
   }
 
   .section {
@@ -3163,16 +3169,22 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
 
   .hero-orbit-stage {
     width: min(100%, 300px);
+    aspect-ratio: 500 / 545;
+  }
+
+  .orbit-tag-india {
+    left: 2%;
+    top: 8.5%;
   }
 
   .orbit-tag-global {
     right: 2%;
-    bottom: 23%;
+    bottom: 14.5%;
   }
 
   .orbit-pill-tagline {
     bottom: 4px;
-    max-width: 94%;
+    max-width: 92%;
   }
 
   .orbit-pill {
@@ -3239,16 +3251,22 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
 
   .hero-orbit-stage {
     width: min(100%, 270px);
+    aspect-ratio: 500 / 545;
+  }
+
+  .orbit-tag-india {
+    left: 1.5%;
+    top: 8%;
   }
 
   .orbit-tag-global {
     right: 2%;
-    bottom: 25%;
+    bottom: 14%;
   }
 
   .orbit-pill-tagline {
     bottom: 2px;
-    max-width: 95%;
+    max-width: 94%;
   }
 
   .orbit-pill {
@@ -3311,17 +3329,23 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
   }
 
   .hero-orbit-stage {
-    width: min(100%, 240px);
+    width: min(100%, 245px);
+    aspect-ratio: 500 / 545;
+  }
+
+  .orbit-tag-india {
+    left: 1%;
+    top: 8%;
   }
 
   .orbit-tag-global {
     right: 1.5%;
-    bottom: 26%;
+    bottom: 14%;
   }
 
   .orbit-pill-tagline {
     bottom: 2px;
-    max-width: 96%;
+    max-width: 95%;
   }
 
   .growth-grid {

@@ -87,8 +87,8 @@ const RINGS = [
   {
     d: 68,
     dir: "normal",
-    r: 20.5,
-    s: 8.2,
+    r: 18.5,
+    s: 7.2,
     items: [
       {
         a: 30,
@@ -119,8 +119,8 @@ const RINGS = [
   {
     d: 105,
     dir: "reverse",
-    r: 32.5,
-    s: 7.2,
+    r: 29.5,
+    s: 6.6,
     items: [
       {
         a: 24,
