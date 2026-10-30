@@ -374,9 +374,9 @@ iframe {
 }
 
 /* ========================================================
-   FEATURED AI HERO BUTTONS (Analyze My CV & Check ATS Score)
+   FEATURED AI HERO BUTTON (Combined Analyze CV & ATS Score)
    ======================================================== */
-.btn.btn-analyze-cv {
+.btn.hero-ai-btn {
   background: #ffffff;
   color: #1565d8;
   border: 1.5px solid #cfe0f6;
@@ -388,13 +388,13 @@ iframe {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.btn.btn-analyze-cv .hero-ai-btn-icon {
+.btn.hero-ai-btn .hero-ai-btn-icon {
   color: #1565d8;
   flex-shrink: 0;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.btn.btn-analyze-cv:hover {
+.btn.hero-ai-btn:hover {
   transform: translateY(-2px);
   background: #f0f7ff;
   border-color: #1565d8;
@@ -402,40 +402,9 @@ iframe {
   box-shadow: 0 6px 20px rgba(21, 101, 216, 0.16);
 }
 
-.btn.btn-analyze-cv:hover .hero-ai-btn-icon {
+.btn.hero-ai-btn:hover .hero-ai-btn-icon {
   transform: rotate(-12deg) scale(1.15);
   color: #0f55bb;
-}
-
-.btn.btn-check-ats {
-  background: #ffffff;
-  color: var(--navy);
-  border: 1.5px solid #dce5ef;
-  box-shadow: 0 2px 10px rgba(11, 31, 58, 0.04);
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.btn.btn-check-ats .hero-ai-btn-icon {
-  color: var(--navy);
-  flex-shrink: 0;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.btn.btn-check-ats:hover {
-  transform: translateY(-2px);
-  background: #ffffff;
-  border-color: #1565d8;
-  color: #1565d8;
-  box-shadow: 0 6px 20px rgba(21, 101, 216, 0.14);
-}
-
-.btn.btn-check-ats:hover .hero-ai-btn-icon {
-  transform: rotate(15deg) scale(1.15);
-  color: #1565d8;
 }
 
 .hero-actions {
@@ -2192,7 +2161,7 @@ html.oryenza-dark .menu {
 }
 
 /* Buttons in Dark Mode */
-html.oryenza-dark .btn.btn-analyze-cv {
+html.oryenza-dark .btn.hero-ai-btn {
   background: rgba(16, 37, 65, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -2201,35 +2170,15 @@ html.oryenza-dark .btn.btn-analyze-cv {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
-html.oryenza-dark .btn.btn-analyze-cv .hero-ai-btn-icon {
+html.oryenza-dark .btn.hero-ai-btn .hero-ai-btn-icon {
   color: #38bdf8;
 }
 
-html.oryenza-dark .btn.btn-analyze-cv:hover {
+html.oryenza-dark .btn.hero-ai-btn:hover {
   background: rgba(22, 50, 88, 0.95);
   border-color: #38bdf8;
   color: #ffffff;
   box-shadow: 0 6px 22px rgba(56, 189, 248, 0.28);
-}
-
-html.oryenza-dark .btn.btn-check-ats {
-  background: rgba(16, 37, 65, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-color: #274870;
-  color: #f1f5f9;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
-
-html.oryenza-dark .btn.btn-check-ats .hero-ai-btn-icon {
-  color: #94a3b8;
-}
-
-html.oryenza-dark .btn.btn-check-ats:hover {
-  background: rgba(22, 50, 88, 0.95);
-  border-color: #38bdf8;
-  color: #38bdf8;
-  box-shadow: 0 6px 22px rgba(56, 189, 248, 0.25);
 }
 
 html.oryenza-dark .btn.primary {

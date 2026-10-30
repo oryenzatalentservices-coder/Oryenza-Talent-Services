@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  ArrowUpRight,
-  ArrowDown,
-  UserCheck,
-  Rocket,
-  Target,
-} from "lucide-react";
+import { ArrowUpRight, ArrowDown, UserCheck, Rocket } from "lucide-react";
 import HeroOrbit from "./HeroOrbit";
 
 export default function Hero({
@@ -14,8 +8,7 @@ export default function Hero({
   onOpenAnalyzeCv,
   onOpenAtsScore,
 }) {
-  const handleOpenAnalyze = onOpenAnalyzeCv || onOpenResumeAts;
-  const handleOpenAts = onOpenAtsScore || onOpenResumeAts;
+  const handleOpenAiSuite = onOpenResumeAts || onOpenAnalyzeCv || onOpenAtsScore;
 
   const handleScroll = (e, targetId) => {
     e.preventDefault();
@@ -68,21 +61,12 @@ export default function Hero({
               </button>
               <button
                 type="button"
-                className="btn hero-ai-btn btn-analyze-cv"
-                onClick={handleOpenAnalyze}
-                title="Upload resume to evaluate quality and get ATS score"
+                className="btn hero-ai-btn"
+                onClick={handleOpenAiSuite}
+                title="Upload resume to evaluate quality and check ATS compatibility score"
               >
                 <Rocket size={17} className="hero-ai-btn-icon" />
-                <span>Analyze My CV</span>
-              </button>
-              <button
-                type="button"
-                className="btn hero-ai-btn btn-check-ats"
-                onClick={handleOpenAts}
-                title="Upload resume to check your ATS compatibility score"
-              >
-                <Target size={17} className="hero-ai-btn-icon" />
-                <span>Check My ATS Score</span>
+                <span>Analyze CV & Check ATS Score</span>
               </button>
             </div>
 
