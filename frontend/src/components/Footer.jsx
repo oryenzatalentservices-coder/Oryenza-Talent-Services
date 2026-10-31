@@ -61,14 +61,13 @@ export default function Footer() {
               <a href="tel:+918200057027">+91 82000 57027</a>
               <br />
               <a
-                href="https://maps.google.com/?q=Pragati+IT+Park,+Opp.+Shell+Petrol+Pump,+Mota+Varachha,+Surat,+Gujarat+394101"
+                href="https://maps.google.com/?q=Surat,+Gujarat,+India+394101"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="footer-address-link"
-                title="View Pragati IT Park, Surat on Google Maps"
+                title="View Surat, Gujarat, India on Google Maps"
               >
-                B-904, Pragati IT Park, Opp. Shell Petrol Pump,<br />
-                Mota&nbsp;Varachha, Surat, Gujarat – 394101
+                Surat, Gujarat, India – 394101
               </a>
 
               <div className="footer-social-row">
