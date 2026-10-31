@@ -405,7 +405,7 @@ export default function AdminDashboard({ onExit }) {
               <div className="admin-input-group">
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter ADMIN_SECRET_KEY"
+                  placeholder="Enter Password"
                   value={inputKey}
                   onChange={(e) => setInputKey(e.target.value)}
                   autoFocus
