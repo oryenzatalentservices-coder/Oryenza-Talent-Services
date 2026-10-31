@@ -82,15 +82,15 @@ export default function StatsSection() {
       cancelAnimationFrame(animFrameRef.current);
     }
 
-    const duration = 1600; // ms
+    const duration = 1800; // ms
     const startTime = performance.now();
     const targets = targetsRef.current;
 
     const update = (now) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // easeOutExpo: quick start with silky smooth deceleration
-      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      // easeOutCubic: steady visible acceleration and silky smooth deceleration
+      const ease = 1 - Math.pow(1 - progress, 3);
 
       setCounts({
         clients: Math.round(targets.clients * ease),
@@ -118,52 +118,73 @@ export default function StatsSection() {
     });
   }, []);
 
-  // Check visibility for intersection observer & scroll handling
+  // Dedicated scroll listener + IntersectionObserver: only triggers when user SCROLLS to this section
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
 
     let isCurrentlyVisible = false;
 
-    const handleVisibilityChange = (visible) => {
-      if (visible && !isCurrentlyVisible) {
+    const checkAndAnimate = () => {
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+
+      // Section is in reading zone when its top is within 85% of screen height and bottom is above 60px
+      const inReadingZone = rect.top < windowHeight * 0.85 && rect.bottom > 60;
+
+      // Trigger condition:
+      // 1. Element is in the reading zone
+      // 2. AND either user has scrolled (scrollY > 30), or the element is well centered on tall screens (rect.top < windowHeight * 0.6)
+      const shouldTrigger = inReadingZone && (scrollY > 30 || rect.top < windowHeight * 0.6);
+
+      if (shouldTrigger && !isCurrentlyVisible) {
         isCurrentlyVisible = true;
         setIsInView(true);
         animateCounters();
-      } else if (!visible && isCurrentlyVisible) {
+      } else if (!inReadingZone && isCurrentlyVisible) {
+        // User scrolled away: reset to 0 so when they scroll back, animation replays!
         isCurrentlyVisible = false;
         setIsInView(false);
         resetCounters();
       }
     };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        handleVisibilityChange(entry.isIntersecting);
-      },
-      {
-        threshold: 0.2, // Trigger when 20% of section enters viewport
-        rootMargin: "0px 0px -40px 0px", // Only trigger once scrolled into view
-      }
-    );
-
-    observer.observe(el);
-
-    // Initial check in case user is already scrolled to this section on load
-    const checkImmediate = () => {
-      const rect = el.getBoundingClientRect();
-      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-      const inView = rect.top < windowHeight - 40 && rect.bottom > 40;
-      if (inView && !isCurrentlyVisible) {
-        handleVisibilityChange(true);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          checkAndAnimate();
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
-    const timer = setTimeout(checkImmediate, 300);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    // IntersectionObserver to reinforce detection during momentum scrolling
+    const observer = new IntersectionObserver(
+      () => {
+        onScroll();
+      },
+      {
+        threshold: [0, 0.2, 0.5, 0.8],
+      }
+    );
+    observer.observe(el);
+
+    // Initial check ONLY if user is already scrolled down past the hero on page load
+    const initialScrollY = window.scrollY || window.pageYOffset || 0;
+    if (initialScrollY > 50) {
+      setTimeout(checkAndAnimate, 200);
+    }
 
     return () => {
-      clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       observer.disconnect();
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
