@@ -61,13 +61,13 @@ export default function Footer() {
               <a href="tel:+918200057027">+91 82000 57027</a>
               <br />
               <a
-                href="https://maps.google.com/?q=Surat,+Gujarat,+India+394101"
+                href="https://maps.google.com/?q=Surat,+Gujarat,+India"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="footer-address-link"
                 title="View Surat, Gujarat, India on Google Maps"
               >
-                Surat, Gujarat, India – 394101
+                Surat, Gujarat, India
               </a>
 
               <div className="footer-social-row">

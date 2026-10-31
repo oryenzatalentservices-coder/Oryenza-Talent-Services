@@ -104,13 +104,13 @@ export default function ContactSection({
             <div className="contact-item">
               <small>Corporate Headquarters</small>
               <a
-                href="https://maps.google.com/?q=Surat,+Gujarat,+India+394101"
+                href="https://maps.google.com/?q=Surat,+Gujarat,+India"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="contact-address"
                 title="View Surat, Gujarat, India on Google Maps"
               >
-                Surat, Gujarat, India – 394101
+                Surat, Gujarat, India
               </a>
             </div>
 
