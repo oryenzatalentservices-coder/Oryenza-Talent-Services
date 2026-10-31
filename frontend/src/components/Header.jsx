@@ -15,6 +15,11 @@ export default function Header({ onOpenCandidateModal }) {
 
   const handleLinkClick = (e, href) => {
     setMobileMenuOpen(false);
+    if (href === "#home") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     if (href.startsWith("#")) {
       const target = document.querySelector(href);
       if (target) {
@@ -25,10 +30,9 @@ export default function Header({ onOpenCandidateModal }) {
   };
 
   return (
-    <>
+    <header className="nav">
       <div className="topline"></div>
-      <header className="nav">
-        <div className="container navinner">
+      <div className="container navinner">
           <a
             aria-label="Oryenza home"
             className="brand"
@@ -130,6 +134,5 @@ export default function Header({ onOpenCandidateModal }) {
           </div>
         </nav>
       </header>
-    </>
   );
 }
