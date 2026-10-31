@@ -114,17 +114,6 @@ export default function ContactSection({
               </a>
             </div>
 
-            <div className="contact-item">
-              <small>Official Domain</small>
-              <a
-                href="https://oryenza.in"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                oryenza.in ↗
-              </a>
-            </div>
-
             <div className="contact-channels">
               <a
                 className="btn whatsapp-btn"
