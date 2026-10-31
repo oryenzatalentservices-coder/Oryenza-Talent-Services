@@ -917,6 +917,15 @@ html.oryenza-dark .orbit-tag {
   font-weight: 850;
   letter-spacing: -0.04em;
   margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.growth-stat .stat-text-badge {
+  font-variant-numeric: normal;
+}
+
+.growth-stat.in-view {
+  border-color: rgba(21, 101, 216, 0.22);
 }
 
 .growth-stat span {
