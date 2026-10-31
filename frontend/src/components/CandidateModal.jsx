@@ -76,6 +76,33 @@ export default function CandidateModal({ isOpen, onClose }) {
       data.append("resume", resumeFile);
 
       const res = await api.submitCandidate(data);
+
+      // Persist true candidate entry to localStorage as backup
+      try {
+        const trueCandidate = {
+          id: (res && res.data && res.data.id) || "cand_" + Date.now(),
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          current_role: formData.current_role,
+          experience_years: formData.experience_years,
+          preferred_location: formData.preferred_location,
+          skills: formData.skills,
+          resume_path: (res && res.data && res.data.resume_path) || null,
+          resume_original_name: resumeFile ? resumeFile.name : null,
+          status: "applied",
+          created_at: new Date().toISOString(),
+        };
+        const currentList = JSON.parse(
+          localStorage.getItem("oryenza_true_candidates") || "[]"
+        );
+        currentList.unshift(trueCandidate);
+        localStorage.setItem(
+          "oryenza_true_candidates",
+          JSON.stringify(currentList.slice(0, 100))
+        );
+      } catch (_) {}
+
       setStatusType("success");
       setStatusMessage(
         res.message ||

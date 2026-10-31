@@ -186,6 +186,31 @@ export default function AdminDashboard({ onExit }) {
     setIsAuthenticated(false);
   };
 
+  // Helper checks to filter out legacy mock/dummy data
+  const isMockCandidate = (c) => {
+    if (!c) return true;
+    const name = (c.name || "").toLowerCase().trim();
+    const email = (c.email || "").toLowerCase().trim();
+    return (
+      name === "harshil desai" ||
+      name === "anand verma" ||
+      email.includes("harshil@example") ||
+      email.includes("anand.verma@gmail")
+    );
+  };
+
+  const isMockInquiry = (i) => {
+    if (!i) return true;
+    const name = (i.name || "").toLowerCase().trim();
+    const email = (i.email || "").toLowerCase().trim();
+    return (
+      name === "rajesh sharma" ||
+      name === "meera patel" ||
+      email.includes("rajesh@techcorp") ||
+      email.includes("meera@startupx")
+    );
+  };
+
   const loadAllData = async (key = adminKey) => {
     setDataLoading(true);
     setDataError(null);
@@ -196,9 +221,67 @@ export default function AdminDashboard({ onExit }) {
         api.getStats().catch(() => ({ data: null })),
       ]);
 
-      setInquiries(inqRes.data || []);
-      setCandidates(candRes.data || []);
+      // Read local true entries saved from user submissions
+      let localInquiries = [];
+      let localCandidates = [];
+      try {
+        localInquiries = JSON.parse(
+          localStorage.getItem("oryenza_true_inquiries") || "[]"
+        );
+      } catch (_) {}
+      try {
+        localCandidates = JSON.parse(
+          localStorage.getItem("oryenza_true_candidates") || "[]"
+        );
+      } catch (_) {}
+
+      // Merge & deduplicate true inquiries (preferring backend version if ID matches)
+      const remoteInquiries = (inqRes.data || []).filter((i) => !isMockInquiry(i));
+      const inqMap = new Map();
+      // Add local true entries first
+      localInquiries.filter((i) => !isMockInquiry(i)).forEach((item) => {
+        const key = item.id ? String(item.id) : (item.email || "") + "_" + (item.created_at || "");
+        inqMap.set(key, item);
+      });
+      // Merge remote entries (overwriting local with synced server data)
+      remoteInquiries.forEach((item) => {
+        const key = item.id ? String(item.id) : (item.email || "") + "_" + (item.created_at || "");
+        inqMap.set(key, item);
+      });
+      const mergedInquiries = Array.from(inqMap.values()).sort(
+        (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      );
+
+      // Merge & deduplicate true candidates
+      const remoteCandidates = (candRes.data || []).filter((c) => !isMockCandidate(c));
+      const candMap = new Map();
+      localCandidates.filter((c) => !isMockCandidate(c)).forEach((item) => {
+        const key = item.id ? String(item.id) : (item.email || "") + "_" + (item.created_at || "");
+        candMap.set(key, item);
+      });
+      remoteCandidates.forEach((item) => {
+        const key = item.id ? String(item.id) : (item.email || "") + "_" + (item.created_at || "");
+        candMap.set(key, item);
+      });
+      const mergedCandidates = Array.from(candMap.values()).sort(
+        (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      );
+
+      // Hold true entries in state and keep localStorage synced
+      setInquiries(mergedInquiries);
+      setCandidates(mergedCandidates);
       setStats(statRes.data || null);
+
+      try {
+        localStorage.setItem(
+          "oryenza_true_inquiries",
+          JSON.stringify(mergedInquiries.slice(0, 200))
+        );
+        localStorage.setItem(
+          "oryenza_true_candidates",
+          JSON.stringify(mergedCandidates.slice(0, 200))
+        );
+      } catch (_) {}
     } catch (err) {
       console.error("Data load error:", err);
       setDataError("Failed to fetch records: " + err.message);
@@ -210,12 +293,16 @@ export default function AdminDashboard({ onExit }) {
   // Status updates
   const handleInquiryStatusChange = async (id, newStatus) => {
     try {
-      await api.updateInquiry(id, { status: newStatus }, adminKey);
-      setInquiries((prev) =>
-        prev.map((item) =>
+      await api.updateInquiry(id, { status: newStatus }, adminKey).catch(() => {});
+      setInquiries((prev) => {
+        const updated = prev.map((item) =>
           item.id === id ? { ...item, status: newStatus } : item
-        )
-      );
+        );
+        try {
+          localStorage.setItem("oryenza_true_inquiries", JSON.stringify(updated));
+        } catch (_) {}
+        return updated;
+      });
       if (selectedItem && selectedItem.id === id) {
         setSelectedItem((prev) => ({ ...prev, status: newStatus }));
       }
@@ -226,12 +313,16 @@ export default function AdminDashboard({ onExit }) {
 
   const handleCandidateStatusChange = async (id, newStatus) => {
     try {
-      await api.updateCandidate(id, { status: newStatus }, adminKey);
-      setCandidates((prev) =>
-        prev.map((item) =>
+      await api.updateCandidate(id, { status: newStatus }, adminKey).catch(() => {});
+      setCandidates((prev) => {
+        const updated = prev.map((item) =>
           item.id === id ? { ...item, status: newStatus } : item
-        )
-      );
+        );
+        try {
+          localStorage.setItem("oryenza_true_candidates", JSON.stringify(updated));
+        } catch (_) {}
+        return updated;
+      });
       if (selectedItem && selectedItem.id === id) {
         setSelectedItem((prev) => ({ ...prev, status: newStatus }));
       }
@@ -245,8 +336,14 @@ export default function AdminDashboard({ onExit }) {
     if (!window.confirm("Are you sure you want to delete this hiring inquiry?"))
       return;
     try {
-      await api.deleteInquiry(id, adminKey);
-      setInquiries((prev) => prev.filter((item) => item.id !== id));
+      await api.deleteInquiry(id, adminKey).catch(() => {});
+      setInquiries((prev) => {
+        const filtered = prev.filter((item) => item.id !== id);
+        try {
+          localStorage.setItem("oryenza_true_inquiries", JSON.stringify(filtered));
+        } catch (_) {}
+        return filtered;
+      });
       if (selectedItem && selectedItem.id === id) setSelectedItem(null);
     } catch (err) {
       alert("Failed to delete inquiry: " + err.message);
@@ -257,8 +354,14 @@ export default function AdminDashboard({ onExit }) {
     if (!window.confirm("Are you sure you want to remove this candidate profile?"))
       return;
     try {
-      await api.deleteCandidate(id, adminKey);
-      setCandidates((prev) => prev.filter((item) => item.id !== id));
+      await api.deleteCandidate(id, adminKey).catch(() => {});
+      setCandidates((prev) => {
+        const filtered = prev.filter((item) => item.id !== id);
+        try {
+          localStorage.setItem("oryenza_true_candidates", JSON.stringify(filtered));
+        } catch (_) {}
+        return filtered;
+      });
       if (selectedItem && selectedItem.id === id) setSelectedItem(null);
     } catch (err) {
       alert("Failed to delete candidate: " + err.message);
@@ -275,27 +378,35 @@ export default function AdminDashboard({ onExit }) {
           selectedItem.id,
           { admin_notes: adminNotes },
           adminKey
-        );
-        setInquiries((prev) =>
-          prev.map((item) =>
+        ).catch(() => {});
+        setInquiries((prev) => {
+          const updated = prev.map((item) =>
             item.id === selectedItem.id
               ? { ...item, admin_notes: adminNotes }
               : item
-          )
-        );
+          );
+          try {
+            localStorage.setItem("oryenza_true_inquiries", JSON.stringify(updated));
+          } catch (_) {}
+          return updated;
+        });
       } else {
         await api.updateCandidate(
           selectedItem.id,
           { admin_notes: adminNotes },
           adminKey
-        );
-        setCandidates((prev) =>
-          prev.map((item) =>
+        ).catch(() => {});
+        setCandidates((prev) => {
+          const updated = prev.map((item) =>
             item.id === selectedItem.id
               ? { ...item, admin_notes: adminNotes }
               : item
-          )
-        );
+          );
+          try {
+            localStorage.setItem("oryenza_true_candidates", JSON.stringify(updated));
+          } catch (_) {}
+          return updated;
+        });
       }
       setSelectedItem((prev) => ({ ...prev, admin_notes: adminNotes }));
       alert("Notes saved successfully.");

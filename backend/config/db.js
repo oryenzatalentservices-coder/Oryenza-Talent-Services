@@ -24,56 +24,8 @@ const localDbPath = path.join(dataDir, "local_db.json");
 function getLocalDb() {
   if (!fs.existsSync(localDbPath)) {
     const initialData = {
-      inquiries: [
-        {
-          id: 1,
-          name: "Rajesh Sharma",
-          email: "rajesh@techinnovations.in",
-          company: "Tech Innovations India",
-          phone: "+91 98765 43210",
-          requirement: "Permanent recruitment",
-          message:
-            "Looking to hire 3 Senior Full-Stack React & Node.js Developers for our Surat & Pune engineering centers.",
-          status: "in_progress",
-          admin_notes: "Initial call scheduled for Monday 11 AM.",
-          created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-          updated_at: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          id: 2,
-          name: "Meera Patel",
-          email: "meera.patel@surattextiles.com",
-          company: "Surat Premium Fabrics",
-          phone: "+91 98250 12345",
-          requirement: "Contract / project hiring",
-          message:
-            "Require 2 Supply Chain & Inventory Operations Managers for our Varachha distribution facility for a 6-month contract.",
-          status: "new",
-          admin_notes: null,
-          created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-          updated_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-        },
-      ],
-      candidates: [
-        {
-          id: 1,
-          name: "Anand Verma",
-          email: "anand.verma@gmail.com",
-          phone: "+91 99887 76655",
-          current_role: "Lead Backend Engineer",
-          experience_years: 6.5,
-          preferred_location: "Surat / Remote",
-          skills: "Node.js, Express, MySQL, PostgreSQL, Docker, AWS",
-          resume_path: null,
-          resume_original_name: "Anand_Verma_CV.pdf",
-          portfolio_url: "https://github.com/anandverma",
-          status: "screening",
-          admin_notes:
-            "Excellent backend architecture fundamentals. Shortlisted for client review.",
-          created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-          updated_at: new Date(Date.now() - 86400000).toISOString(),
-        },
-      ],
+      inquiries: [],
+      candidates: [],
       site_stats: [
         {
           id: 1,
@@ -85,7 +37,6 @@ function getLocalDb() {
         {
           id: 2,
           metric_key: "industries_served",
-          15: true,
           metric_value: 15,
           label: "Industries served",
           suffix: "+",

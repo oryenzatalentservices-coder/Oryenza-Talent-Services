@@ -37,6 +37,22 @@ export default function ContactSection({
 
     try {
       const res = await api.submitInquiry(formData);
+      try {
+        const saved = res?.data || {
+          id: Date.now(),
+          ...formData,
+          status: "new",
+          created_at: new Date().toISOString(),
+        };
+        const currentList = JSON.parse(
+          localStorage.getItem("oryenza_true_inquiries") || "[]"
+        );
+        currentList.unshift(saved);
+        localStorage.setItem(
+          "oryenza_true_inquiries",
+          JSON.stringify(currentList.slice(0, 100))
+        );
+      } catch (_) {}
       setStatusType("success");
       setStatusMessage(
         res.message ||
