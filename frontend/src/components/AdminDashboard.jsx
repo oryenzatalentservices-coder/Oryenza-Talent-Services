@@ -29,8 +29,23 @@ import {
   Calendar,
   Sun,
   Moon,
+  BarChart3,
+  TrendingUp,
+  PieChart,
+  Award,
+  Activity,
+  MapPin,
+  Layers,
+  Clock,
+  ArrowUpRight,
+  Sparkles,
 } from "lucide-react";
-import { exportToExcel, exportToPDF, exportToCSV } from "../utils/exportUtils";
+import {
+  exportToExcel,
+  exportToPDF,
+  exportToCSV,
+  exportAnalyticsToPDF,
+} from "../utils/exportUtils";
 import "../styles/admin.css";
 
 // WhatsApp SVG Icon component
@@ -596,6 +611,233 @@ export default function AdminDashboard({ onExit }) {
     });
   }, [candidates, statusFilter, searchTerm]);
 
+  // Reactive Analytics Computations
+  const analyticsData = useMemo(() => {
+    const totalInquiries = inquiries.length;
+    const totalCandidates = candidates.length;
+
+    // Candidate statuses count
+    const candStatusCounts = {
+      applied: 0,
+      screening: 0,
+      interview: 0,
+      offered: 0,
+      placed: 0,
+      rejected: 0,
+    };
+    candidates.forEach((c) => {
+      const s = (c.status || "applied").toLowerCase();
+      if (candStatusCounts[s] !== undefined) {
+        candStatusCounts[s]++;
+      } else {
+        candStatusCounts.applied++;
+      }
+    });
+
+    const placedCount = candStatusCounts.placed;
+    const interviewCount = candStatusCounts.interview + candStatusCounts.offered;
+    const screeningCount = candStatusCounts.screening;
+    const appliedCount = candStatusCounts.applied;
+    const rejectedCount = candStatusCounts.rejected;
+
+    // Resumes verified / uploaded
+    const resumesCount = candidates.filter(
+      (c) => c.resume_path || c.resume_original_name || c.resume_data
+    ).length;
+    const resumeIndexRate =
+      totalCandidates > 0 ? Math.round((resumesCount / totalCandidates) * 100) : 0;
+    const placementRate =
+      totalCandidates > 0 ? Math.round((placedCount / totalCandidates) * 100) : 0;
+
+    // Experience calculations
+    let totalExpYears = 0;
+    const expBrackets = {
+      entry: { label: "Entry Level (0-2 yrs)", count: 0 },
+      mid: { label: "Mid Level (3-5 yrs)", count: 0 },
+      senior: { label: "Senior Specialist (6-9 yrs)", count: 0 },
+      exec: { label: "Leadership (10+ yrs)", count: 0 },
+    };
+    candidates.forEach((c) => {
+      const y = parseFloat(c.experience_years) || 0;
+      totalExpYears += y;
+      if (y <= 2) expBrackets.entry.count++;
+      else if (y <= 5) expBrackets.mid.count++;
+      else if (y <= 9) expBrackets.senior.count++;
+      else expBrackets.exec.count++;
+    });
+    const avgExperience =
+      totalCandidates > 0 ? (totalExpYears / totalCandidates).toFixed(1) : "0.0";
+
+    // Client Inquiries statuses
+    const inqStatusCounts = {
+      new: 0,
+      in_progress: 0,
+      contacted: 0,
+      closed: 0,
+    };
+    inquiries.forEach((inq) => {
+      const s = (inq.status || "new").toLowerCase();
+      if (inqStatusCounts[s] !== undefined) inqStatusCounts[s]++;
+      else inqStatusCounts.new++;
+    });
+    const activeMandates = inqStatusCounts.new + inqStatusCounts.in_progress;
+    const closedMandates = inqStatusCounts.closed;
+    const mandateCloseRate =
+      totalInquiries > 0 ? Math.round((closedMandates / totalInquiries) * 100) : 0;
+
+    // Client Service Breakdown
+    const serviceDistribution = {
+      "Permanent Staffing": 0,
+      "Executive Search": 0,
+      "Contract Staffing": 0,
+      "Bulk / Turnkey Hiring": 0,
+      "General Mandates": 0,
+    };
+    inquiries.forEach((inq) => {
+      const req = (inq.requirement || "").toLowerCase();
+      if (req.includes("perm")) serviceDistribution["Permanent Staffing"]++;
+      else if (
+        req.includes("exec") ||
+        req.includes("lead") ||
+        req.includes("c-suite")
+      )
+        serviceDistribution["Executive Search"]++;
+      else if (
+        req.includes("contract") ||
+        req.includes("temp") ||
+        req.includes("contingent")
+      )
+        serviceDistribution["Contract Staffing"]++;
+      else if (
+        req.includes("bulk") ||
+        req.includes("turnkey") ||
+        req.includes("rpo")
+      )
+        serviceDistribution["Bulk / Turnkey Hiring"]++;
+      else serviceDistribution["General Mandates"]++;
+    });
+
+    // Top Skills Extraction
+    const skillFreq = {};
+    candidates.forEach((c) => {
+      if (!c.skills) return;
+      const tokens = c.skills
+        .split(/[,;\n/]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      tokens.forEach((raw) => {
+        let norm = raw.charAt(0).toUpperCase() + raw.slice(1);
+        if (norm.toLowerCase().includes("java") && !norm.toLowerCase().includes("javascript"))
+          norm = "Java";
+        if (norm.toLowerCase().includes("python")) norm = "Python";
+        if (norm.toLowerCase().includes("react")) norm = "React.js";
+        if (norm.toLowerCase().includes("node")) norm = "Node.js";
+        if (
+          norm.toLowerCase().includes("sql") ||
+          norm.toLowerCase().includes("postgres") ||
+          norm.toLowerCase().includes("mysql")
+        )
+          norm = "SQL / DB";
+        if (
+          norm.toLowerCase().includes("devops") ||
+          norm.toLowerCase().includes("aws") ||
+          norm.toLowerCase().includes("cloud")
+        )
+          norm = "DevOps / Cloud";
+        if (
+          norm.toLowerCase().includes("sales") ||
+          norm.toLowerCase().includes("b2b") ||
+          norm.toLowerCase().includes("business dev")
+        )
+          norm = "Sales / B2B";
+        if (
+          norm.toLowerCase().includes("hr") ||
+          norm.toLowerCase().includes("recruit") ||
+          norm.toLowerCase().includes("talent")
+        )
+          norm = "HR & Talent";
+        if (
+          norm.toLowerCase().includes("account") ||
+          norm.toLowerCase().includes("finance") ||
+          norm.toLowerCase().includes("tax")
+        )
+          norm = "Accounts / Finance";
+        skillFreq[norm] = (skillFreq[norm] || 0) + 1;
+      });
+    });
+    const sortedSkills = Object.entries(skillFreq)
+      .map(([name, count]) => ({
+        name,
+        count,
+        pct:
+          totalCandidates > 0
+            ? Math.round((count / totalCandidates) * 100)
+            : 0,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    // Geographic Footprint
+    const geoDistribution = {
+      "Surat & South Gujarat": 0,
+      "Ahmedabad & Central Gujarat": 0,
+      "Mumbai & Metros": 0,
+      "Pan-India / Remote": 0,
+    };
+    candidates.forEach((c) => {
+      const loc = (c.preferred_location || "").toLowerCase();
+      if (
+        loc.includes("surat") ||
+        loc.includes("vapi") ||
+        loc.includes("navsari") ||
+        loc.includes("bharuch") ||
+        loc.includes("valsad")
+      ) {
+        geoDistribution["Surat & South Gujarat"]++;
+      } else if (
+        loc.includes("ahmedabad") ||
+        loc.includes("gandhinagar") ||
+        loc.includes("vadodara") ||
+        loc.includes("baroda") ||
+        loc.includes("rajkot")
+      ) {
+        geoDistribution["Ahmedabad & Central Gujarat"]++;
+      } else if (
+        loc.includes("mumbai") ||
+        loc.includes("pune") ||
+        loc.includes("thane") ||
+        loc.includes("navi")
+      ) {
+        geoDistribution["Mumbai & Metros"]++;
+      } else {
+        geoDistribution["Pan-India / Remote"]++;
+      }
+    });
+
+    return {
+      totalInquiries,
+      totalCandidates,
+      candStatusCounts,
+      placedCount,
+      interviewCount,
+      screeningCount,
+      appliedCount,
+      rejectedCount,
+      resumesCount,
+      resumeIndexRate,
+      placementRate,
+      inqStatusCounts,
+      activeMandates,
+      closedMandates,
+      mandateCloseRate,
+      avgExperience,
+      expBrackets,
+      serviceDistribution,
+      sortedSkills,
+      geoDistribution,
+    };
+  }, [inquiries, candidates]);
+
   // Gatekeeper Screen if not logged in
   if (!isAuthenticated) {
     return (
@@ -849,156 +1091,186 @@ export default function AdminDashboard({ onExit }) {
               <span>Candidate Pool</span>
               <span className="admin-badge-count">{candidates.length}</span>
             </button>
+
+            <button
+              type="button"
+              className={`admin-tab-btn ${
+                activeTab === "analytics" ? "active" : ""
+              }`}
+              onClick={() => {
+                setActiveTab("analytics");
+              }}
+            >
+              <BarChart3 size={16} />
+              <span>Company Analytics</span>
+              <span className="admin-badge-count admin-analytics-pulse">Live</span>
+            </button>
           </div>
 
-          <div className="admin-controls-row">
-            {/* Live Search */}
-            <div className="admin-search-input-wrap">
-              <Search size={15} className="admin-search-icon" />
-              <input
-                type="text"
-                className="admin-search-input"
-                placeholder={
-                  activeTab === "inquiries"
-                    ? "Search inquiries..."
-                    : "Search candidates, skills..."
-                }
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {/* Status Filter Dropdown */}
-            <select
-              className="admin-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Statuses</option>
-              {activeTab === "inquiries" ? (
-                <>
-                  <option value="new">New</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="contacted">Contacted</option>
-                  <option value="closed">Closed</option>
-                </>
-              ) : (
-                <>
-                  <option value="applied">Applied</option>
-                  <option value="screening">Screening</option>
-                  <option value="interview">Interview</option>
-                  <option value="offered">Offered</option>
-                  <option value="placed">Placed</option>
-                  <option value="rejected">Rejected</option>
-                </>
-              )}
-            </select>
-
-            {/* Export Dropdown (Excel, PDF, CSV) */}
-            <div className="admin-export-dropdown-wrap" ref={exportMenuRef}>
+          {activeTab === "analytics" ? (
+            <div className="admin-controls-row">
               <button
                 type="button"
-                className={`admin-btn-outline admin-export-trigger ${
-                  showExportMenu ? "active" : ""
-                }`}
-                onClick={() => setShowExportMenu((prev) => !prev)}
-                title="Export data to Excel, PDF, or CSV"
-                aria-haspopup="true"
-                aria-expanded={showExportMenu}
+                className="admin-btn-primary admin-analytics-pdf-btn"
+                onClick={() =>
+                  exportAnalyticsToPDF(analyticsData, inquiries, candidates)
+                }
+                title="Download Executive Company Analytics Report (PDF)"
               >
                 <Download size={14} />
-                <span>Export</span>
-                <ChevronDown
-                  size={13}
-                  className={`admin-export-chevron ${
-                    showExportMenu ? "rotate" : ""
-                  }`}
-                />
+                <span>Executive Report (PDF)</span>
               </button>
-
-              {showExportMenu && (
-                <div className="admin-export-menu" role="menu">
-                  <div className="admin-export-menu-header">
-                    <span>
-                      Export {activeTab === "inquiries" ? "Inquiries" : "Candidates"} (
-                      {activeTab === "inquiries"
-                        ? filteredInquiries.length
-                        : filteredCandidates.length}
-                      )
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="admin-export-item"
-                    onClick={() => {
-                      handleExport("excel");
-                      setShowExportMenu(false);
-                    }}
-                    role="menuitem"
-                  >
-                    <div className="admin-export-item-icon excel">
-                      <FileSpreadsheet size={16} />
-                    </div>
-                    <div className="admin-export-item-content">
-                      <div className="admin-export-item-title">
-                        Excel Spreadsheet (.xlsx)
-                      </div>
-                      <div className="admin-export-item-desc">
-                        Full formatted workbook
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="admin-export-item"
-                    onClick={() => {
-                      handleExport("pdf");
-                      setShowExportMenu(false);
-                    }}
-                    role="menuitem"
-                  >
-                    <div className="admin-export-item-icon pdf">
-                      <FileText size={16} />
-                    </div>
-                    <div className="admin-export-item-content">
-                      <div className="admin-export-item-title">
-                        PDF Document (.pdf)
-                      </div>
-                      <div className="admin-export-item-desc">
-                        Printable branded report
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="admin-export-item"
-                    onClick={() => {
-                      handleExport("csv");
-                      setShowExportMenu(false);
-                    }}
-                    role="menuitem"
-                  >
-                    <div className="admin-export-item-icon csv">
-                      <Download size={16} />
-                    </div>
-                    <div className="admin-export-item-content">
-                      <div className="admin-export-item-title">CSV File (.csv)</div>
-                      <div className="admin-export-item-desc">
-                        Standard raw delimited data
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              )}
             </div>
-          </div>
+          ) : (
+            <div className="admin-controls-row">
+              {/* Live Search */}
+              <div className="admin-search-input-wrap">
+                <Search size={15} className="admin-search-icon" />
+                <input
+                  type="text"
+                  className="admin-search-input"
+                  placeholder={
+                    activeTab === "inquiries"
+                      ? "Search inquiries..."
+                      : "Search candidates, skills..."
+                  }
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              {/* Status Filter Dropdown */}
+              <select
+                className="admin-select"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Statuses</option>
+                {activeTab === "inquiries" ? (
+                  <>
+                    <option value="new">New</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="closed">Closed</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="applied">Applied</option>
+                    <option value="screening">Screening</option>
+                    <option value="interview">Interview</option>
+                    <option value="offered">Offered</option>
+                    <option value="placed">Placed</option>
+                    <option value="rejected">Rejected</option>
+                  </>
+                )}
+              </select>
+
+              {/* Export Dropdown (Excel, PDF, CSV) */}
+              <div className="admin-export-dropdown-wrap" ref={exportMenuRef}>
+                <button
+                  type="button"
+                  className={`admin-btn-outline admin-export-trigger ${
+                    showExportMenu ? "active" : ""
+                  }`}
+                  onClick={() => setShowExportMenu((prev) => !prev)}
+                  title="Export data to Excel, PDF, or CSV"
+                  aria-haspopup="true"
+                  aria-expanded={showExportMenu}
+                >
+                  <Download size={14} />
+                  <span>Export</span>
+                  <ChevronDown
+                    size={13}
+                    className={`admin-export-chevron ${
+                      showExportMenu ? "rotate" : ""
+                    }`}
+                  />
+                </button>
+
+                {showExportMenu && (
+                  <div className="admin-export-menu" role="menu">
+                    <div className="admin-export-menu-header">
+                      <span>
+                        Export {activeTab === "inquiries" ? "Inquiries" : "Candidates"} (
+                        {activeTab === "inquiries"
+                          ? filteredInquiries.length
+                          : filteredCandidates.length}
+                        )
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="admin-export-item"
+                      onClick={() => {
+                        handleExport("excel");
+                        setShowExportMenu(false);
+                      }}
+                      role="menuitem"
+                    >
+                      <div className="admin-export-item-icon excel">
+                        <FileSpreadsheet size={16} />
+                      </div>
+                      <div className="admin-export-item-content">
+                        <div className="admin-export-item-title">
+                          Excel Spreadsheet (.xlsx)
+                        </div>
+                        <div className="admin-export-item-desc">
+                          Full formatted workbook
+                        </div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="admin-export-item"
+                      onClick={() => {
+                        handleExport("pdf");
+                        setShowExportMenu(false);
+                      }}
+                      role="menuitem"
+                    >
+                      <div className="admin-export-item-icon pdf">
+                        <FileText size={16} />
+                      </div>
+                      <div className="admin-export-item-content">
+                        <div className="admin-export-item-title">
+                          PDF Document (.pdf)
+                        </div>
+                        <div className="admin-export-item-desc">
+                          Printable branded report
+                        </div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="admin-export-item"
+                      onClick={() => {
+                        handleExport("csv");
+                        setShowExportMenu(false);
+                      }}
+                      role="menuitem"
+                    >
+                      <div className="admin-export-item-icon csv">
+                        <Download size={16} />
+                      </div>
+                      <div className="admin-export-item-content">
+                        <div className="admin-export-item-title">CSV File (.csv)</div>
+                        <div className="admin-export-item-desc">
+                          Standard raw delimited data
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Data Tables */}
-        {activeTab === "inquiries" ? (
+        {activeTab === "inquiries" && (
           <div className="admin-table-card">
             <div className="admin-table-responsive">
               <table className="admin-table">
@@ -1163,7 +1435,9 @@ export default function AdminDashboard({ onExit }) {
               </table>
             </div>
           </div>
-        ) : (
+        )}
+
+        {activeTab === "candidates" && (
           <div className="admin-table-card">
             <div className="admin-table-responsive">
               <table className="admin-table">
@@ -1320,6 +1594,647 @@ export default function AdminDashboard({ onExit }) {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Company & Recruitment Analytics View */}
+        {activeTab === "analytics" && (
+          <div className="admin-analytics-container">
+            {/* Top Strategic KPIs Grid */}
+            <div className="admin-analytics-kpi-grid">
+              <div className="admin-analytics-kpi-card accent-blue">
+                <div className="admin-analytics-kpi-header">
+                  <span className="admin-analytics-kpi-label">Placement Conversion Rate</span>
+                  <div className="admin-analytics-kpi-icon">
+                    <Award size={18} />
+                  </div>
+                </div>
+                <div className="admin-analytics-kpi-value-wrap">
+                  <span className="admin-analytics-kpi-value">{analyticsData.placementRate}%</span>
+                  <span className="admin-analytics-kpi-badge success">
+                    <TrendingUp size={12} />
+                    <span>{analyticsData.placedCount} Placed</span>
+                  </span>
+                </div>
+                <p className="admin-analytics-kpi-desc">
+                  Based on qualified candidate profiles successfully joined with hiring clients
+                </p>
+                <div className="admin-analytics-mini-bar">
+                  <div
+                    className="admin-analytics-mini-fill"
+                    style={{
+                      width: `${Math.min(analyticsData.placementRate, 100)}%`,
+                      background: "#10b981",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-analytics-kpi-card accent-navy">
+                <div className="admin-analytics-kpi-header">
+                  <span className="admin-analytics-kpi-label">Active Client Mandates</span>
+                  <div className="admin-analytics-kpi-icon">
+                    <Briefcase size={18} />
+                  </div>
+                </div>
+                <div className="admin-analytics-kpi-value-wrap">
+                  <span className="admin-analytics-kpi-value">{analyticsData.activeMandates}</span>
+                  <span className="admin-analytics-kpi-badge info">
+                    <span>{analyticsData.mandateCloseRate}% Closed</span>
+                  </span>
+                </div>
+                <p className="admin-analytics-kpi-desc">
+                  {analyticsData.inqStatusCounts.new} new mandates, {analyticsData.inqStatusCounts.in_progress} actively sourcing
+                </p>
+                <div className="admin-analytics-mini-bar">
+                  <div
+                    className="admin-analytics-mini-fill"
+                    style={{
+                      width: `${
+                        analyticsData.totalInquiries > 0
+                          ? (analyticsData.activeMandates / analyticsData.totalInquiries) * 100
+                          : 0
+                      }%`,
+                      background: "#1565d8",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-analytics-kpi-card accent-purple">
+                <div className="admin-analytics-kpi-header">
+                  <span className="admin-analytics-kpi-label">Candidate Talent Pool</span>
+                  <div className="admin-analytics-kpi-icon">
+                    <Users size={18} />
+                  </div>
+                </div>
+                <div className="admin-analytics-kpi-value-wrap">
+                  <span className="admin-analytics-kpi-value">{analyticsData.totalCandidates}</span>
+                  <span className="admin-analytics-kpi-badge purple">
+                    <span>{analyticsData.avgExperience} yrs avg</span>
+                  </span>
+                </div>
+                <p className="admin-analytics-kpi-desc">
+                  Pre-screened professionals registered across Gujarat & national talent corridors
+                </p>
+                <div className="admin-analytics-mini-bar">
+                  <div
+                    className="admin-analytics-mini-fill"
+                    style={{ width: "100%", background: "#8b5cf6" }}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-analytics-kpi-card accent-teal">
+                <div className="admin-analytics-kpi-header">
+                  <span className="admin-analytics-kpi-label">Verified CV Index</span>
+                  <div className="admin-analytics-kpi-icon">
+                    <FileText size={18} />
+                  </div>
+                </div>
+                <div className="admin-analytics-kpi-value-wrap">
+                  <span className="admin-analytics-kpi-value">{analyticsData.resumeIndexRate}%</span>
+                  <span className="admin-analytics-kpi-badge teal">
+                    <span>{analyticsData.resumesCount} CVs</span>
+                  </span>
+                </div>
+                <p className="admin-analytics-kpi-desc">
+                  Candidate profiles with active resumes uploaded and sidecar preview ready
+                </p>
+                <div className="admin-analytics-mini-bar">
+                  <div
+                    className="admin-analytics-mini-fill"
+                    style={{
+                      width: `${Math.min(analyticsData.resumeIndexRate, 100)}%`,
+                      background: "#06b6d4",
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Recruitment Pipeline Conversion Funnel */}
+            <div className="admin-analytics-card">
+              <div className="admin-analytics-card-header">
+                <div>
+                  <h3 className="admin-analytics-card-title">
+                    <Activity size={18} />
+                    <span>Recruitment Pipeline & Conversion Funnel</span>
+                  </h3>
+                  <p className="admin-analytics-card-subtitle">
+                    Candidate velocity across stages from portal submission to placement
+                  </p>
+                </div>
+                <div className="admin-funnel-disqualified-tag">
+                  <AlertCircle size={14} />
+                  <span>{analyticsData.rejectedCount} Archived</span>
+                </div>
+              </div>
+
+              <div className="admin-funnel-pipeline">
+                {/* Step 1: Applied */}
+                <div className="admin-funnel-stage">
+                  <div className="admin-funnel-step-num">1</div>
+                  <div className="admin-funnel-info">
+                    <span className="admin-funnel-name">Applied / Inflow</span>
+                    <strong className="admin-funnel-count">{analyticsData.totalCandidates}</strong>
+                    <span className="admin-funnel-pct">100% Total Pool</span>
+                  </div>
+                  <div className="admin-funnel-bar-wrap">
+                    <div className="admin-funnel-bar-fill stage-applied" style={{ width: "100%" }} />
+                  </div>
+                  <span className="admin-funnel-desc">Candidate submission</span>
+                </div>
+
+                <div className="admin-funnel-arrow">
+                  <ChevronRight size={18} />
+                </div>
+
+                {/* Step 2: Screening */}
+                <div className="admin-funnel-stage">
+                  <div className="admin-funnel-step-num">2</div>
+                  <div className="admin-funnel-info">
+                    <span className="admin-funnel-name">Dossier Screening</span>
+                    <strong className="admin-funnel-count">
+                      {analyticsData.screeningCount +
+                        analyticsData.interviewCount +
+                        analyticsData.placedCount}
+                    </strong>
+                    <span className="admin-funnel-pct">
+                      {analyticsData.totalCandidates > 0
+                        ? Math.round(
+                            ((analyticsData.screeningCount +
+                              analyticsData.interviewCount +
+                              analyticsData.placedCount) /
+                              analyticsData.totalCandidates) *
+                              100
+                          )
+                        : 0}
+                      % qualified
+                    </span>
+                  </div>
+                  <div className="admin-funnel-bar-wrap">
+                    <div
+                      className="admin-funnel-bar-fill stage-screening"
+                      style={{
+                        width: `${
+                          analyticsData.totalCandidates > 0
+                            ? ((analyticsData.screeningCount +
+                                analyticsData.interviewCount +
+                                analyticsData.placedCount) /
+                                analyticsData.totalCandidates) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
+                  <span className="admin-funnel-desc">Recruiter qualification</span>
+                </div>
+
+                <div className="admin-funnel-arrow">
+                  <ChevronRight size={18} />
+                </div>
+
+                {/* Step 3: Interview */}
+                <div className="admin-funnel-stage">
+                  <div className="admin-funnel-step-num">3</div>
+                  <div className="admin-funnel-info">
+                    <span className="admin-funnel-name">Client Interviews</span>
+                    <strong className="admin-funnel-count">
+                      {analyticsData.interviewCount + analyticsData.placedCount}
+                    </strong>
+                    <span className="admin-funnel-pct">
+                      {analyticsData.totalCandidates > 0
+                        ? Math.round(
+                            ((analyticsData.interviewCount + analyticsData.placedCount) /
+                              analyticsData.totalCandidates) *
+                              100
+                          )
+                        : 0}
+                      % shortlisted
+                    </span>
+                  </div>
+                  <div className="admin-funnel-bar-wrap">
+                    <div
+                      className="admin-funnel-bar-fill stage-interview"
+                      style={{
+                        width: `${
+                          analyticsData.totalCandidates > 0
+                            ? ((analyticsData.interviewCount + analyticsData.placedCount) /
+                                analyticsData.totalCandidates) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
+                  <span className="admin-funnel-desc">Client rounds & offers</span>
+                </div>
+
+                <div className="admin-funnel-arrow">
+                  <ChevronRight size={18} />
+                </div>
+
+                {/* Step 4: Placed */}
+                <div className="admin-funnel-stage final">
+                  <div className="admin-funnel-step-num success">✓</div>
+                  <div className="admin-funnel-info">
+                    <span className="admin-funnel-name">Placed & Onboarded</span>
+                    <strong className="admin-funnel-count">{analyticsData.placedCount}</strong>
+                    <span className="admin-funnel-pct success">
+                      {analyticsData.placementRate}% Placed
+                    </span>
+                  </div>
+                  <div className="admin-funnel-bar-wrap">
+                    <div
+                      className="admin-funnel-bar-fill stage-placed"
+                      style={{ width: `${Math.min(analyticsData.placementRate, 100)}%` }}
+                    />
+                  </div>
+                  <span className="admin-funnel-desc">Joined client organization</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Split Grid: Services Breakdown & In-Demand Skills */}
+            <div className="admin-analytics-split-grid">
+              {/* Left: Client Hiring Mandates Breakdown */}
+              <div className="admin-analytics-card">
+                <div className="admin-analytics-card-header">
+                  <div>
+                    <h3 className="admin-analytics-card-title">
+                      <Layers size={18} />
+                      <span>Client Hiring Mandate Portfolio</span>
+                    </h3>
+                    <p className="admin-analytics-card-subtitle">
+                      Distribution of client requests across recruitment service models
+                    </p>
+                  </div>
+                  <span className="admin-count-pill">{analyticsData.totalInquiries} Total</span>
+                </div>
+
+                <div className="admin-analytics-bars-list">
+                  {Object.entries(analyticsData.serviceDistribution).map(([service, count], idx) => {
+                    const pct =
+                      analyticsData.totalInquiries > 0
+                        ? Math.round((count / analyticsData.totalInquiries) * 100)
+                        : 0;
+                    const colors = ["#1565d8", "#0284c7", "#10b981", "#8b5cf6", "#f59e0b"];
+                    const color = colors[idx % colors.length];
+
+                    return (
+                      <div key={service} className="admin-stat-bar-row">
+                        <div className="admin-stat-bar-header">
+                          <span className="admin-stat-bar-title">{service}</span>
+                          <span className="admin-stat-bar-val">
+                            <strong>{count}</strong> ({pct}%)
+                          </span>
+                        </div>
+                        <div className="admin-stat-bar-track">
+                          <div
+                            className="admin-stat-bar-fill"
+                            style={{ width: `${pct}%`, background: color }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="admin-analytics-status-pill-grid">
+                  <div className="admin-status-pill-item status-new">
+                    <span>New Inquiries</span>
+                    <strong>{analyticsData.inqStatusCounts.new}</strong>
+                  </div>
+                  <div className="admin-status-pill-item status-in-progress">
+                    <span>In Progress</span>
+                    <strong>{analyticsData.inqStatusCounts.in_progress}</strong>
+                  </div>
+                  <div className="admin-status-pill-item status-contacted">
+                    <span>Contacted</span>
+                    <strong>{analyticsData.inqStatusCounts.contacted}</strong>
+                  </div>
+                  <div className="admin-status-pill-item status-closed">
+                    <span>Closed Mandates</span>
+                    <strong>{analyticsData.inqStatusCounts.closed}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: In-Demand Candidate Skills */}
+              <div className="admin-analytics-card">
+                <div className="admin-analytics-card-header">
+                  <div>
+                    <h3 className="admin-analytics-card-title">
+                      <Sparkles size={18} />
+                      <span>In-Demand Skills & Tech Stacks</span>
+                    </h3>
+                    <p className="admin-analytics-card-subtitle">
+                      Most requested and possessed competencies in the candidate pool
+                    </p>
+                  </div>
+                  <span className="admin-count-pill">
+                    {analyticsData.sortedSkills.length} Technologies
+                  </span>
+                </div>
+
+                <div className="admin-analytics-skills-list">
+                  {analyticsData.sortedSkills.length === 0 ? (
+                    <div className="admin-empty-state small">
+                      <Sparkles size={28} className="admin-empty-icon" />
+                      <p>
+                        Candidate skills will dynamically appear here as applications are received.
+                      </p>
+                    </div>
+                  ) : (
+                    analyticsData.sortedSkills.map((skill, idx) => (
+                      <div key={skill.name} className="admin-skill-bar-row">
+                        <div className="admin-skill-meta">
+                          <div className="admin-skill-rank-badge">#{idx + 1}</div>
+                          <span className="admin-skill-name">{skill.name}</span>
+                          <span className="admin-skill-count">
+                            {skill.count} profile{skill.count > 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        <div className="admin-skill-track">
+                          <div
+                            className="admin-skill-fill"
+                            style={{
+                              width: `${Math.max(skill.pct, 12)}%`,
+                              background:
+                                idx === 0
+                                  ? "linear-gradient(90deg, #1565d8, #00b8d9)"
+                                  : idx === 1
+                                  ? "linear-gradient(90deg, #10b981, #06b6d4)"
+                                  : "linear-gradient(90deg, #6366f1, #8b5cf6)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="admin-analytics-footer-tip">
+                  <CheckCircle2 size={14} color="#10b981" />
+                  <span>
+                    Auto-parsed from candidate CV submissions & profile specializations.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Split Grid: Experience Spectrum & Geographic Footprint */}
+            <div className="admin-analytics-split-grid">
+              {/* Experience Spectrum */}
+              <div className="admin-analytics-card">
+                <div className="admin-analytics-card-header">
+                  <div>
+                    <h3 className="admin-analytics-card-title">
+                      <Clock size={18} />
+                      <span>Talent Seniority & Experience Spectrum</span>
+                    </h3>
+                    <p className="admin-analytics-card-subtitle">
+                      Candidate breakdown by years of professional industry experience
+                    </p>
+                  </div>
+                  <span
+                    className="admin-badge-count"
+                    style={{ background: "rgba(21, 101, 216, 0.12)", color: "#1565d8" }}
+                  >
+                    Avg: {analyticsData.avgExperience} Yrs
+                  </span>
+                </div>
+
+                <div className="admin-exp-spectrum-grid">
+                  {Object.entries(analyticsData.expBrackets).map(([key, data]) => {
+                    const pct =
+                      analyticsData.totalCandidates > 0
+                        ? Math.round((data.count / analyticsData.totalCandidates) * 100)
+                        : 0;
+                    return (
+                      <div key={key} className="admin-exp-item">
+                        <div className="admin-exp-top">
+                          <span className="admin-exp-label">{data.label}</span>
+                          <strong className="admin-exp-count">{data.count}</strong>
+                        </div>
+                        <div className="admin-exp-bar-wrap">
+                          <div
+                            className={`admin-exp-bar-fill exp-${key}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="admin-exp-pct">{pct}% of talent pool</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="admin-exp-summary-banner">
+                  <Briefcase size={16} />
+                  <span>
+                    Talent pool has a balanced representation of early-career talent, specialists, and senior leaders.
+                  </span>
+                </div>
+              </div>
+
+              {/* Geographic Footprint */}
+              <div className="admin-analytics-card">
+                <div className="admin-analytics-card-header">
+                  <div>
+                    <h3 className="admin-analytics-card-title">
+                      <MapPin size={18} />
+                      <span>Geographic Talent & Client Footprint</span>
+                    </h3>
+                    <p className="admin-analytics-card-subtitle">
+                      Candidate preferred working locations & regional hiring demand
+                    </p>
+                  </div>
+                  <span className="admin-count-pill">Gujarat & Pan-India</span>
+                </div>
+
+                <div className="admin-geo-list">
+                  {Object.entries(analyticsData.geoDistribution).map(([region, count], idx) => {
+                    const pct =
+                      analyticsData.totalCandidates > 0
+                        ? Math.round((count / analyticsData.totalCandidates) * 100)
+                        : 0;
+                    return (
+                      <div key={region} className="admin-geo-row">
+                        <div className="admin-geo-header">
+                          <span className="admin-geo-name">
+                            <span className="admin-geo-dot" />
+                            {region}
+                          </span>
+                          <span className="admin-geo-val">
+                            <strong>{count}</strong> ({pct}%)
+                          </span>
+                        </div>
+                        <div className="admin-geo-track">
+                          <div
+                            className="admin-geo-fill"
+                            style={{
+                              width: `${pct}%`,
+                              background:
+                                idx === 0
+                                  ? "#1565d8"
+                                  : idx === 1
+                                  ? "#0284c7"
+                                  : idx === 2
+                                  ? "#0d9488"
+                                  : "#64748b",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="admin-geo-footer-highlight">
+                  <Building size={15} />
+                  <span>
+                    Headquartered in <strong>Surat</strong> with active candidate outreach across South Gujarat & Western Metros.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actionable Client Accounts & Inquiries Portfolio */}
+            <div className="admin-table-card">
+              <div className="admin-table-card-top">
+                <div>
+                  <h3 className="admin-analytics-card-title">
+                    <Building size={18} />
+                    <span>Client Hiring Accounts & Active Mandates</span>
+                  </h3>
+                  <p className="admin-analytics-card-subtitle">
+                    Quick client engagement overview with 1-click WhatsApp outreach & current fulfillment status
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="admin-btn-outline"
+                  onClick={() => {
+                    setActiveTab("inquiries");
+                    setStatusFilter("all");
+                  }}
+                >
+                  <span>Manage All Inquiries ({inquiries.length})</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+
+              <div className="admin-table-responsive">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Client / Company</th>
+                      <th>Primary Requirement</th>
+                      <th>Contact Details</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inquiries.length === 0 ? (
+                      <tr>
+                        <td colSpan="5">
+                          <div className="admin-empty-state">
+                            <Inbox size={36} className="admin-empty-icon" />
+                            <p>No client hiring inquiries received yet.</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      inquiries.slice(0, 5).map((inq) => (
+                        <tr key={inq.id}>
+                          <td>
+                            <div style={{ fontWeight: 700, color: "var(--navy)" }}>
+                              {inq.name}
+                            </div>
+                            {inq.company && (
+                              <div style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                                🏢 {inq.company}
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <span
+                              style={{
+                                background: "rgba(21, 101, 216, 0.08)",
+                                color: "var(--blue)",
+                                padding: "4px 8px",
+                                borderRadius: "6px",
+                                fontWeight: 600,
+                                fontSize: "0.82rem",
+                              }}
+                            >
+                              {inq.requirement || "General Inquiry"}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ fontSize: "0.82rem" }}>
+                              <a href={`mailto:${inq.email}`} style={{ color: "var(--blue)" }}>
+                                ✉ {inq.email}
+                              </a>
+                              {inq.phone && (
+                                <div style={{ color: "var(--muted)", marginTop: "2px" }}>
+                                  📞 {inq.phone}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <select
+                              className={`admin-status-select status-${inq.status}`}
+                              value={inq.status}
+                              onChange={(e) =>
+                                handleInquiryStatusChange(inq.id, e.target.value)
+                              }
+                            >
+                              <option value="new">New</option>
+                              <option value="in_progress">In Progress</option>
+                              <option value="contacted">Contacted</option>
+                              <option value="closed">Closed</option>
+                            </select>
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              {getClientWhatsAppUrl(inq) && (
+                                <a
+                                  href={getClientWhatsAppUrl(inq)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="admin-whatsapp-btn"
+                                  title={`Chat on WhatsApp with ${inq.name}`}
+                                >
+                                  <WhatsAppIcon size={12} />
+                                  <span>WhatsApp</span>
+                                </a>
+                              )}
+                              <button
+                                type="button"
+                                className="admin-icon-btn"
+                                onClick={() => {
+                                  setSelectedItem(inq);
+                                  setItemType("inquiry");
+                                  setAdminNotes(inq.admin_notes || "");
+                                }}
+                                title="View details"
+                              >
+                                <FileText size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

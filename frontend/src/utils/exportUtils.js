@@ -365,3 +365,227 @@ export function exportToCSV(type, data) {
   link.click();
   document.body.removeChild(link);
 }
+
+/**
+ * 4. EXPORT EXECUTIVE COMPANY ANALYTICS REPORT (.pdf)
+ */
+export function exportAnalyticsToPDF(analytics, inquiries = [], candidates = []) {
+  if (!analytics) {
+    alert("Analytics data is currently unavailable.");
+    return;
+  }
+
+  const dateStamp = new Date().toISOString().slice(0, 10);
+  const fileName = `oryenza_executive_analytics_${dateStamp}.pdf`;
+
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "pt",
+    format: "a4",
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // Header lockup
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(22);
+  doc.setTextColor(11, 25, 44); // #0b192c
+  doc.text("ORYENZA TALENT SERVICES", 40, 44);
+
+  // Subtitle
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(21, 101, 216); // #1565d8
+  doc.text("Executive Company & Recruitment Analytics Report", 40, 64);
+
+  // Report metadata
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9.5);
+  doc.setTextColor(100, 116, 139); // #64748b
+  const reportDate = new Date().toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  doc.text(`Generated: ${reportDate}  |  Classification: Confidential / Leadership Review`, 40, 80);
+
+  // Divider line
+  doc.setDrawColor(21, 101, 216);
+  doc.setLineWidth(2);
+  doc.line(40, 88, pageWidth - 40, 88);
+
+  // Table 1: Executive KPI Metrics
+  const kpiHead = [["Strategic Performance Metric", "Current Value", "Executive Context"]];
+  const kpiBody = [
+    [
+      "Placement Conversion Rate",
+      `${analytics.placementRate || 0}%`,
+      `${analytics.placedCount || 0} successfully placed talent records`,
+    ],
+    [
+      "Active Client Hiring Mandates",
+      `${analytics.activeMandates || 0}`,
+      `${analytics.closedMandates || 0} closed mandates (${analytics.mandateCloseRate || 0}% close rate)`,
+    ],
+    [
+      "Candidate Talent Pool",
+      `${analytics.totalCandidates || 0}`,
+      `Total verified applicant pool registered in system`,
+    ],
+    [
+      "Verified CV / Resume Index",
+      `${analytics.resumeIndexRate || 0}%`,
+      `${analytics.resumesCount || 0} resumes attached & preview-ready`,
+    ],
+    [
+      "Average Candidate Experience",
+      `${analytics.avgExperience || 0} Years`,
+      `Cross-domain talent seniority index across Gujarat & metros`,
+    ],
+    [
+      "Total Client Inquiries",
+      `${analytics.totalInquiries || 0}`,
+      `Hiring inquiries received across Permanent & Contract domains`,
+    ],
+  ];
+
+  autoTable(doc, {
+    startY: 102,
+    margin: { left: 40, right: 40 },
+    head: kpiHead,
+    body: kpiBody,
+    theme: "striped",
+    headStyles: {
+      fillColor: [21, 101, 216],
+      textColor: [255, 255, 255],
+      fontSize: 10,
+      fontStyle: "bold",
+    },
+    bodyStyles: {
+      textColor: [11, 25, 44],
+      fontSize: 9,
+      cellPadding: 5.5,
+    },
+    columnStyles: {
+      0: { cellWidth: 170, fontStyle: "bold" },
+      1: { cellWidth: 95, halign: "center", fontStyle: "bold", textColor: [21, 101, 216] },
+      2: { cellWidth: 250 },
+    },
+  });
+
+  // Table 2: Recruitment Pipeline Funnel Breakdown
+  const funnelHead = [["Recruitment Funnel Stage", "Candidate Count", "Pipeline Share", "Status Description"]];
+  const total = analytics.totalCandidates || 1;
+  const funnelBody = [
+    [
+      "Applied / Talent Inflow",
+      String(analytics.candStatusCounts?.applied || 0),
+      `${Math.round(((analytics.candStatusCounts?.applied || 0) / total) * 100)}%`,
+      "Initial application submission awaiting recruiter review",
+    ],
+    [
+      "Screening & Dossier Review",
+      String(analytics.candStatusCounts?.screening || 0),
+      `${Math.round(((analytics.candStatusCounts?.screening || 0) / total) * 100)}%`,
+      "Profile & resume undergoing recruiter qualification",
+    ],
+    [
+      "Client Interview / Evaluation",
+      String(analytics.candStatusCounts?.interview || 0),
+      `${Math.round(((analytics.candStatusCounts?.interview || 0) / total) * 100)}%`,
+      "Candidate actively engaged in client interviews / shortlists",
+    ],
+    [
+      "Job Offer Extended",
+      String(analytics.candStatusCounts?.offered || 0),
+      `${Math.round(((analytics.candStatusCounts?.offered || 0) / total) * 100)}%`,
+      "Offer letter released by hiring client, awaiting joining",
+    ],
+    [
+      "Final Placement & Joined",
+      String(analytics.candStatusCounts?.placed || 0),
+      `${Math.round(((analytics.candStatusCounts?.placed || 0) / total) * 100)}%`,
+      "Successfully placed and integrated at client organization",
+    ],
+    [
+      "Archived / Disqualified",
+      String(analytics.candStatusCounts?.rejected || 0),
+      `${Math.round(((analytics.candStatusCounts?.rejected || 0) / total) * 100)}%`,
+      "Profile not matching mandate specifications or withdrawn",
+    ],
+  ];
+
+  autoTable(doc, {
+    startY: doc.lastAutoTable.finalY + 18,
+    margin: { left: 40, right: 40 },
+    head: funnelHead,
+    body: funnelBody,
+    theme: "striped",
+    headStyles: {
+      fillColor: [11, 25, 44],
+      textColor: [255, 255, 255],
+      fontSize: 10,
+      fontStyle: "bold",
+    },
+    bodyStyles: {
+      textColor: [11, 25, 44],
+      fontSize: 9,
+      cellPadding: 5.5,
+    },
+    columnStyles: {
+      0: { cellWidth: 155, fontStyle: "bold" },
+      1: { cellWidth: 85, halign: "center", fontStyle: "bold" },
+      2: { cellWidth: 80, halign: "center" },
+      3: { cellWidth: 195 },
+    },
+  });
+
+  // Table 3: Active Client Hiring Mandates
+  if (inquiries && inquiries.length > 0) {
+    const mandateHead = [["#", "Client Name", "Company", "Primary Requirement", "Status", "Date"]];
+    const mandateBody = inquiries.slice(0, 10).map((inq, idx) => [
+      String(idx + 1),
+      inq.name || "-",
+      inq.company || "-",
+      inq.requirement || "-",
+      formatStatus(inq.status),
+      formatDate(inq.created_at),
+    ]);
+
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 18,
+      margin: { left: 40, right: 40, bottom: 40 },
+      head: mandateHead,
+      body: mandateBody,
+      theme: "striped",
+      headStyles: {
+        fillColor: [21, 101, 216],
+        textColor: [255, 255, 255],
+        fontSize: 9.5,
+        fontStyle: "bold",
+      },
+      bodyStyles: {
+        textColor: [11, 25, 44],
+        fontSize: 8.5,
+        cellPadding: 5,
+      },
+      didDrawPage: (dataObj) => {
+        const pageNumber = dataObj.pageNumber;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+          "Oryenza Talent Services • Surat, Gujarat • info@oryenza.in • +91 82000 57027",
+          40,
+          pageHeight - 20
+        );
+        doc.text(`Page ${pageNumber}`, pageWidth - 70, pageHeight - 20);
+      },
+    });
+  }
+
+  doc.save(fileName);
+}
