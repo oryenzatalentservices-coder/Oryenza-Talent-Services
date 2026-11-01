@@ -285,7 +285,7 @@ export const api = {
     return await this.getInquiries("all", adminKey);
   },
 
-  getResumeDownloadUrl(filename, adminKey = null) {
+  getResumeDownloadUrl(filename, adminKey = null, candidateId = null) {
     const key =
       adminKey ||
       (typeof window !== "undefined"
@@ -293,10 +293,15 @@ export const api = {
           window.localStorage?.getItem("oryenza_admin_key") ||
           ""
         : "");
-    return `${API_BASE}/candidates/resume/${encodeURIComponent(filename)}?admin_key=${encodeURIComponent(key)}`;
+    const candidateQuery = candidateId
+      ? `&candidate_id=${encodeURIComponent(candidateId)}`
+      : "";
+    return `${API_BASE}/candidates/resume/${encodeURIComponent(
+      filename
+    )}?admin_key=${encodeURIComponent(key)}${candidateQuery}`;
   },
 
-  getResumeViewUrl(filename, adminKey = null) {
+  getResumeViewUrl(filename, adminKey = null, candidateId = null) {
     const key =
       adminKey ||
       (typeof window !== "undefined"
@@ -304,7 +309,12 @@ export const api = {
           window.localStorage?.getItem("oryenza_admin_key") ||
           ""
         : "");
-    return `${API_BASE}/candidates/resume/${encodeURIComponent(filename)}?admin_key=${encodeURIComponent(key)}&inline=true`;
+    const candidateQuery = candidateId
+      ? `&candidate_id=${encodeURIComponent(candidateId)}`
+      : "";
+    return `${API_BASE}/candidates/resume/${encodeURIComponent(
+      filename
+    )}?admin_key=${encodeURIComponent(key)}&inline=true${candidateQuery}`;
   },
 };
 

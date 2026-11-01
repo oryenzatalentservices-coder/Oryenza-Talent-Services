@@ -6,7 +6,6 @@ async function seed() {
   console.log(
     `Database ready. No dummy seed data to insert — holding only authentic entries.`
   );
-}
   console.log("Database seed finished successfully!");
 }
 

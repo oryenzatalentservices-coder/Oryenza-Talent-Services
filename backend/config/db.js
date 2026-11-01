@@ -138,6 +138,7 @@ async function initDb() {
         skills TEXT DEFAULT NULL,
         resume_path VARCHAR(255) DEFAULT NULL,
         resume_original_name VARCHAR(255) DEFAULT NULL,
+        resume_data LONGTEXT DEFAULT NULL,
         portfolio_url VARCHAR(255) DEFAULT NULL,
         status ENUM('applied', 'screening', 'interview', 'offered', 'placed', 'rejected') DEFAULT 'applied',
         admin_notes TEXT DEFAULT NULL,
@@ -159,6 +160,16 @@ async function initDb() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+
+    // Auto-migration: ensure resume_data column exists in candidates table
+    try {
+      await pool.query(`
+        ALTER TABLE candidates ADD COLUMN resume_data LONGTEXT DEFAULT NULL;
+      `);
+      console.log("[Database] Migration: Added resume_data column to candidates table.");
+    } catch (_) {
+      // Column already exists or error ignored
+    }
 
     // 4. Seed default stats if table is empty
     const [statsRows] = await pool.query(
@@ -373,8 +384,8 @@ const db = {
       const sql = `
         INSERT INTO candidates (
           name, email, phone, current_role, experience_years, preferred_location,
-          skills, resume_path, resume_original_name, portfolio_url, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'applied')
+          skills, resume_path, resume_original_name, resume_data, portfolio_url, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'applied')
       `;
       const [result] = await pool.query(sql, [
         candidate.name,
@@ -388,6 +399,7 @@ const db = {
         candidate.skills || null,
         candidate.resume_path || null,
         candidate.resume_original_name || null,
+        candidate.resume_data || null,
         candidate.portfolio_url || null,
       ]);
       return {

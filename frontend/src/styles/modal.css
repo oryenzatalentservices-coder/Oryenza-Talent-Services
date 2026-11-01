@@ -1503,3 +1503,465 @@ html.oryenza-dark .ats-skills-column.missing {
     width: 100%;
   }
 }
+
+/* ========================================================
+   CV HEALTH & CONTENT ANALYSIS DISTINCT VIEW STYLES
+   ======================================================== */
+
+.ats-tab-score-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-left: 6px;
+}
+
+.ats-tab-score-badge.cv {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.ats-tab-score-badge.ats {
+  background: rgba(2, 132, 199, 0.15);
+  color: #0284c7;
+}
+
+/* CV Health Banner */
+.ats-score-banner.cv-health-banner {
+  background: linear-gradient(135deg, #f0fdf4 0%, #f7faff 100%);
+  border-color: #bbf7d0;
+}
+
+html.oryenza-dark .ats-score-banner.cv-health-banner {
+  background: linear-gradient(135deg, #062319 0%, #0d1e35 100%);
+  border-color: #164e3b;
+}
+
+/* 4 Content Quality Pillars */
+.ats-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 680px) {
+  .ats-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ats-pillar-card {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+html.oryenza-dark .ats-pillar-card {
+  background: #112642;
+  border-color: #244166;
+}
+
+.ats-pillar-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.ats-pillar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ats-pillar-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+html.oryenza-dark .ats-pillar-title {
+  color: #f1f5f9;
+}
+
+.ats-pillar-badge {
+  font-size: 0.72rem;
+  font-weight: 750;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(21, 101, 216, 0.1);
+  color: #1565d8;
+}
+
+html.oryenza-dark .ats-pillar-badge {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+}
+
+.ats-pillar-metric-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.ats-pillar-score {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--navy);
+}
+
+html.oryenza-dark .ats-pillar-score {
+  color: #f8fafc;
+}
+
+.ats-pillar-count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+html.oryenza-dark .ats-pillar-count {
+  color: #94a3b8;
+}
+
+.ats-pillar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(100, 116, 139, 0.12);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+html.oryenza-dark .ats-pillar-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ats-pillar-fill {
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ats-pillar-desc {
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+html.oryenza-dark .ats-pillar-desc {
+  color: #94a3b8;
+}
+
+/* Section-by-Section Quality Review */
+.ats-section-quality-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ats-section-quality-card {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+html.oryenza-dark .ats-section-quality-card {
+  background: #112642;
+  border-color: #244166;
+}
+
+.ats-section-quality-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ats-sec-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ats-sec-num {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: var(--blue);
+  background: rgba(21, 101, 216, 0.1);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+html.oryenza-dark .ats-sec-num {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.ats-sec-title {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+html.oryenza-dark .ats-sec-title {
+  color: #f1f5f9;
+}
+
+.ats-quality-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+.ats-quality-badge.strong {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.ats-quality-badge.good {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.ats-quality-badge.recommended,
+.ats-quality-badge.needs-detail,
+.ats-quality-badge.needs-review {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+html.oryenza-dark .ats-quality-badge.strong {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+html.oryenza-dark .ats-quality-badge.good {
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+html.oryenza-dark .ats-quality-badge.recommended,
+html.oryenza-dark .ats-quality-badge.needs-detail,
+html.oryenza-dark .ats-quality-badge.needs-review {
+  background: rgba(217, 119, 6, 0.15);
+  color: #fbbf24;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.ats-sec-verdict {
+  font-size: 0.84rem;
+  color: var(--navy);
+}
+
+html.oryenza-dark .ats-sec-verdict {
+  color: #cbd5e1;
+}
+
+.ats-sec-advice-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(21, 101, 216, 0.05);
+  font-size: 0.8rem;
+  color: #1e3a5f;
+  line-height: 1.45;
+}
+
+html.oryenza-dark .ats-sec-advice-box {
+  background: rgba(56, 189, 248, 0.08);
+  color: #94a3b8;
+}
+
+.ats-sec-advice-box strong {
+  color: var(--blue);
+}
+
+html.oryenza-dark .ats-sec-advice-box strong {
+  color: #38bdf8;
+}
+
+/* Standout Strengths vs Opportunities Grid */
+.ats-strengths-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 768px) {
+  .ats-strengths-split-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ats-strength-column {
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ats-strength-column.positive {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+html.oryenza-dark .ats-strength-column.positive {
+  background: #062319;
+  border-color: #164e3b;
+}
+
+.ats-strength-column.improve {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+html.oryenza-dark .ats-strength-column.improve {
+  background: #0c2744;
+  border-color: #1a4d7c;
+}
+
+.ats-column-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ats-column-head h5 {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+html.oryenza-dark .ats-column-head h5 {
+  color: #f1f5f9;
+}
+
+.color-star {
+  color: #10b981;
+}
+
+.color-zap {
+  color: #0284c7;
+}
+
+.ats-strength-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ats-strength-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+html.oryenza-dark .ats-strength-item {
+  background: #093325;
+  border-color: #14533d;
+}
+
+.ats-strength-icon {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ats-strength-item h6 {
+  margin: 0 0 2px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+html.oryenza-dark .ats-strength-item h6 {
+  color: #f8fafc;
+}
+
+.ats-strength-item p {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+html.oryenza-dark .ats-strength-item p {
+  color: #94a3b8;
+}
+
+.ats-improvement-item {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+html.oryenza-dark .ats-improvement-item {
+  background: #0f3456;
+  border-color: #1f507e;
+}
+
+.ats-imp-priority-tag {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(2, 132, 199, 0.12);
+  color: #0284c7;
+}
+
+html.oryenza-dark .ats-imp-priority-tag {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.ats-improvement-item h6 {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+html.oryenza-dark .ats-improvement-item h6 {
+  color: #f8fafc;
+}
+
+.ats-improvement-item p {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+html.oryenza-dark .ats-improvement-item p {
+  color: #94a3b8;
+}

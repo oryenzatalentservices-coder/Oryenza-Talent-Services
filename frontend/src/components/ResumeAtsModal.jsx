@@ -24,6 +24,9 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  Star,
+  Zap,
+  ThumbsUp,
 } from "lucide-react";
 import { api } from "../services/api";
 import {
@@ -219,7 +222,7 @@ export default function ResumeAtsModal({
     setTimeout(() => setCopiedKey(null), 1800);
   };
 
-  // Export ATS Report as PDF
+  // Export Report as PDF (Dynamic based on activeMode: CV Health vs ATS)
   const handleDownloadPdf = () => {
     if (!result) return;
     setIsExportingPdf(true);
@@ -228,6 +231,7 @@ export default function ResumeAtsModal({
       const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 40;
+      const isAnalyze = activeMode === "analyze";
 
       // Header Banner
       doc.setFillColor(11, 31, 58); // Oryenza Navy
@@ -241,7 +245,13 @@ export default function ResumeAtsModal({
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(0, 184, 217); // Cyan
-      doc.text("AI Resume & ATS Compatibility Audit Report", margin, 52);
+      doc.text(
+        isAnalyze
+          ? "AI CV Health & Content Quality Audit Report"
+          : "AI Resume & ATS Compatibility Audit Report",
+        margin,
+        52
+      );
 
       const dateStr = new Date().toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -258,20 +268,30 @@ export default function ResumeAtsModal({
       doc.setDrawColor(207, 224, 246);
       doc.roundedRect(margin, currentY, pageWidth - margin * 2, 70, 6, 6, "D");
 
+      const scoreNum = isAnalyze
+        ? result.cvHealth?.cvQualityScore || result.overallScore
+        : result.overallScore;
+      const scoreTag = isAnalyze
+        ? `CV HEALTH RATING: GRADE ${result.cvHealth?.cvGrade || "A"} (${result.cvHealth?.cvQualityLabel || "Interview Ready"})`
+        : `ATS MATCH RATING: ${result.scoreTier.toUpperCase()} (${result.scoreLabel})`;
+
       doc.setTextColor(11, 31, 58);
       doc.setFontSize(26);
       doc.setFont("helvetica", "bold");
-      doc.text(`${result.overallScore} / 100`, margin + 20, currentY + 45);
+      doc.text(`${scoreNum} / 100`, margin + 20, currentY + 45);
 
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(21, 101, 216);
-      doc.text(`ATS RATING: ${result.scoreTier.toUpperCase()} (${result.scoreLabel})`, margin + 140, currentY + 30);
+      doc.text(scoreTag, margin + 140, currentY + 30);
 
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(83, 98, 118);
-      doc.text(`Keyword Match: ${result.keywordMatchPercentage}% | Words: ${result.metrics?.wordCount || 0} | File: ${result.filename || "Resume"}`, margin + 140, currentY + 48);
+      const submeta = isAnalyze
+        ? `Power Verbs: ${result.metrics?.actionVerbsCount || 0} | KPIs: ${result.metrics?.quantifiedMetricsCount || 0} | File: ${result.filename || "Resume"}`
+        : `Keyword Match: ${result.keywordMatchPercentage}% | Words: ${result.metrics?.wordCount || 0} | File: ${result.filename || "Resume"}`;
+      doc.text(submeta, margin + 140, currentY + 48);
 
       currentY += 88;
 
@@ -285,73 +305,142 @@ export default function ResumeAtsModal({
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(60, 72, 88);
-      const splitSummary = doc.splitTextToSize(result.summary, pageWidth - margin * 2);
+      const summaryText = isAnalyze
+        ? result.cvHealth?.cvSummary || result.summary
+        : result.summary;
+      const splitSummary = doc.splitTextToSize(summaryText, pageWidth - margin * 2);
       doc.text(splitSummary, margin, currentY);
       currentY += splitSummary.length * 12 + 10;
 
-      // Section Completeness Table
-      const sectionTableRows = (result.sectionCompleteness || []).map((sec) => [
-        sec.name,
-        sec.status,
-        sec.detail,
-      ]);
+      if (isAnalyze) {
+        // Table 1: Content Pillars
+        const pillarRows = (result.cvHealth?.contentPillars || []).map((p) => [
+          p.title,
+          `${p.score}/100 (${p.rating})`,
+          p.count,
+          p.desc,
+        ]);
 
-      autoTable(doc, {
-        startY: currentY,
-        head: [["Resume Section", "Status", "ATS Evaluation Findings"]],
-        body: sectionTableRows,
-        theme: "striped",
-        headStyles: { fillColor: [21, 101, 216], textColor: [255, 255, 255], fontStyle: "bold" },
-        margin: { left: margin, right: margin },
-        styles: { fontSize: 8.5, cellPadding: 5 },
-      });
+        autoTable(doc, {
+          startY: currentY,
+          head: [["Content Pillar", "Score & Rating", "Metric", "Recruiter Evaluation"]],
+          body: pillarRows,
+          theme: "striped",
+          headStyles: { fillColor: [21, 101, 216], textColor: [255, 255, 255], fontStyle: "bold" },
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 8.5, cellPadding: 5 },
+        });
 
-      currentY = doc.lastAutoTable.finalY + 18;
+        currentY = doc.lastAutoTable.finalY + 18;
 
-      // Formatting Checks Table
-      const formatRows = (result.formattingChecks || []).map((f) => [
-        f.item,
-        f.status,
-        f.message,
-      ]);
+        // Table 2: Section Quality Review
+        const sectionRows = (result.cvHealth?.sectionQuality || []).map((sec) => [
+          sec.name,
+          sec.status,
+          sec.verdict,
+          sec.advice,
+        ]);
 
-      autoTable(doc, {
-        startY: currentY,
-        head: [["Formatting & Readability Check", "Status", "Recommendation"]],
-        body: formatRows,
-        theme: "striped",
-        headStyles: { fillColor: [16, 35, 60], textColor: [255, 255, 255], fontStyle: "bold" },
-        margin: { left: margin, right: margin },
-        styles: { fontSize: 8.5, cellPadding: 5 },
-      });
+        autoTable(doc, {
+          startY: currentY,
+          head: [["Resume Section", "Status", "Recruiter Verdict", "Optimization Advice"]],
+          body: sectionRows,
+          theme: "striped",
+          headStyles: { fillColor: [16, 35, 60], textColor: [255, 255, 255], fontStyle: "bold" },
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 8, cellPadding: 5 },
+        });
 
-      currentY = doc.lastAutoTable.finalY + 18;
+        currentY = doc.lastAutoTable.finalY + 18;
 
-      // Actionable Recommendations
-      if (currentY + 100 > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 40;
-      }
+        if (currentY + 120 > doc.internal.pageSize.getHeight()) {
+          doc.addPage();
+          currentY = 40;
+        }
 
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(11, 31, 58);
-      doc.text("Key Actionable Recommendations", margin, currentY);
-      currentY += 16;
-
-      (result.recommendations || []).forEach((rec, idx) => {
-        doc.setFontSize(9);
+        doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(21, 101, 216);
-        doc.text(`${idx + 1}. [${rec.category}] ${rec.title || ""}`, margin, currentY);
-        currentY += 12;
+        doc.setTextColor(11, 31, 58);
+        doc.text("Priority Opportunities for Elevation", margin, currentY);
+        currentY += 16;
 
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(70, 80, 95);
-        const splitRec = doc.splitTextToSize(rec.text, pageWidth - margin * 2 - 15);
-        doc.text(splitRec, margin + 12, currentY);
-        currentY += splitRec.length * 11 + 6;
-      });
+        (result.cvHealth?.cvImprovements || []).forEach((imp, idx) => {
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(21, 101, 216);
+          doc.text(`${idx + 1}. [${imp.priority} Priority] ${imp.title}`, margin, currentY);
+          currentY += 12;
+
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(70, 80, 95);
+          const splitText = doc.splitTextToSize(imp.detail, pageWidth - margin * 2 - 15);
+          doc.text(splitText, margin + 12, currentY);
+          currentY += splitText.length * 11 + 6;
+        });
+      } else {
+        // Table 1: Section Completeness
+        const sectionTableRows = (result.sectionCompleteness || []).map((sec) => [
+          sec.name,
+          sec.status,
+          sec.detail,
+        ]);
+
+        autoTable(doc, {
+          startY: currentY,
+          head: [["Resume Section", "Status", "ATS Evaluation Findings"]],
+          body: sectionTableRows,
+          theme: "striped",
+          headStyles: { fillColor: [21, 101, 216], textColor: [255, 255, 255], fontStyle: "bold" },
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 8.5, cellPadding: 5 },
+        });
+
+        currentY = doc.lastAutoTable.finalY + 18;
+
+        // Table 2: Formatting Checks
+        const formatRows = (result.formattingChecks || []).map((f) => [
+          f.item,
+          f.status,
+          f.message,
+        ]);
+
+        autoTable(doc, {
+          startY: currentY,
+          head: [["Formatting & Readability Check", "Status", "Recommendation"]],
+          body: formatRows,
+          theme: "striped",
+          headStyles: { fillColor: [16, 35, 60], textColor: [255, 255, 255], fontStyle: "bold" },
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 8.5, cellPadding: 5 },
+        });
+
+        currentY = doc.lastAutoTable.finalY + 18;
+
+        if (currentY + 100 > doc.internal.pageSize.getHeight()) {
+          doc.addPage();
+          currentY = 40;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(11, 31, 58);
+        doc.text("Key Actionable Recommendations", margin, currentY);
+        currentY += 16;
+
+        (result.recommendations || []).forEach((rec, idx) => {
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(21, 101, 216);
+          doc.text(`${idx + 1}. [${rec.category}] ${rec.title || ""}`, margin, currentY);
+          currentY += 12;
+
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(70, 80, 95);
+          const splitRec = doc.splitTextToSize(rec.text, pageWidth - margin * 2 - 15);
+          doc.text(splitRec, margin + 12, currentY);
+          currentY += splitRec.length * 11 + 6;
+        });
+      }
 
       // Footer
       const totalPages = doc.internal.getNumberOfPages();
@@ -360,7 +449,7 @@ export default function ResumeAtsModal({
         doc.setFontSize(8);
         doc.setTextColor(130, 145, 165);
         doc.text(
-          "Oryenza Talent Services — Confidential Candidate ATS Evaluation | www.oryenza.in",
+          "Oryenza Talent Services — Confidential Candidate Evaluation | www.oryenza.in",
           margin,
           doc.internal.pageSize.getHeight() - 20
         );
@@ -371,7 +460,8 @@ export default function ResumeAtsModal({
         );
       }
 
-      const saveName = `Oryenza_ATS_Report_${result.filename ? result.filename.replace(/\.[^/.]+$/, "") : "Resume"}.pdf`;
+      const savePrefix = isAnalyze ? "Oryenza_CV_Health_Report_" : "Oryenza_ATS_Compatibility_Report_";
+      const saveName = `${savePrefix}${result.filename ? result.filename.replace(/\.[^/.]+$/, "") : "Resume"}.pdf`;
       doc.save(saveName);
     } catch (pdfErr) {
       console.error("PDF generation error:", pdfErr);
@@ -439,27 +529,35 @@ export default function ResumeAtsModal({
           </button>
         </div>
 
-        {/* Mode Switcher Tabs */}
-        {!result && (
-          <div className="ats-tab-switcher">
-            <button
-              type="button"
-              className={`ats-tab-btn ${activeMode === "analyze" ? "active" : ""}`}
-              onClick={() => handleSwitchMode("analyze")}
-            >
-              <Rocket size={17} />
-              <span>Analyze My CV</span>
-            </button>
-            <button
-              type="button"
-              className={`ats-tab-btn ${activeMode === "ats" ? "active" : ""}`}
-              onClick={() => handleSwitchMode("ats")}
-            >
-              <Target size={17} />
-              <span>Check My ATS Score</span>
-            </button>
-          </div>
-        )}
+        {/* Mode Switcher Tabs (Always visible & switchable even after upload) */}
+        <div className="ats-tab-switcher">
+          <button
+            type="button"
+            className={`ats-tab-btn ${activeMode === "analyze" ? "active" : ""}`}
+            onClick={() => handleSwitchMode("analyze")}
+          >
+            <Rocket size={17} />
+            <span>AI CV Health & Content</span>
+            {result && (
+              <span className="ats-tab-score-badge cv">
+                {result.cvHealth?.cvQualityScore || result.overallScore}/100
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            className={`ats-tab-btn ${activeMode === "ats" ? "active" : ""}`}
+            onClick={() => handleSwitchMode("ats")}
+          >
+            <Target size={17} />
+            <span>ATS Compatibility & Score</span>
+            {result && (
+              <span className="ats-tab-score-badge ats">
+                {result.overallScore}/100
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Modal Body */}
         <div className="ats-modal-body">
@@ -640,232 +738,596 @@ export default function ResumeAtsModal({
             </div>
           )}
 
-          {/* VIEW 2: COMPREHENSIVE ATS & CV AUDIT RESULTS */}
+          {/* VIEW 2: COMPREHENSIVE ATS & CV AUDIT RESULTS (Separated Views by Mode) */}
           {result && (
             <div className="ats-results-view">
-              {/* Top Score Banner */}
-              <div className="ats-score-banner">
-                <div className="ats-score-gauge-box">
-                  <div className="ats-circle-score" style={{ borderColor: result.scoreColor }}>
-                    <div className="ats-circle-inner">
-                      <span className="ats-score-num">{result.overallScore}</span>
-                      <span className="ats-score-total">/ 100</span>
-                    </div>
-                  </div>
-                  <div className="ats-score-badge" style={{ backgroundColor: `${result.scoreColor}18`, color: result.scoreColor }}>
-                    {result.scoreTier} Score
-                  </div>
-                </div>
-
-                <div className="ats-score-details">
-                  <div className="ats-score-eyebrow">
-                    <span>ATS Assessment for:</span>
-                    <strong>{result.filename || "Uploaded Resume"}</strong>
-                  </div>
-                  <h3 className="ats-score-headline">{result.scoreLabel}</h3>
-                  <p className="ats-summary-text">{result.summary}</p>
-
-                  <div className="ats-quick-badges">
-                    <div className="ats-quick-pill">
-                      <Target size={14} />
-                      <span>Keyword Match: <strong>{result.keywordMatchPercentage}%</strong></span>
-                    </div>
-                    <div className="ats-quick-pill">
-                      <Layers size={14} />
-                      <span>Technical Skills: <strong>{result.metrics?.technicalSkillsCount || 0}</strong></span>
-                    </div>
-                    <div className="ats-quick-pill">
-                      <Clock size={14} />
-                      <span>Length: <strong>{result.metrics?.wordCount || 0} words ({result.metrics?.estimatedPages || 1} pg)</strong></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4 KPI Metrics Grid */}
-              <div className="ats-metrics-grid">
-                <div className="ats-metric-card">
-                  <div className="ats-metric-icon">
-                    <FileText size={20} />
-                  </div>
-                  <div className="ats-metric-val">{result.metrics?.wordCount || 0}</div>
-                  <div className="ats-metric-name">Word Count</div>
-                  <div className="ats-metric-sub">
-                    {result.metrics?.wordCount >= 350 && result.metrics?.wordCount <= 1000
-                      ? "Optimal length"
-                      : "Needs balance"}
-                  </div>
-                </div>
-
-                <div className="ats-metric-card">
-                  <div className="ats-metric-icon">
-                    <BarChart3 size={20} />
-                  </div>
-                  <div className="ats-metric-val">{result.metrics?.bulletPointsCount || 0}</div>
-                  <div className="ats-metric-name">Bullet Points</div>
-                  <div className="ats-metric-sub">High scanability</div>
-                </div>
-
-                <div className="ats-metric-card">
-                  <div className="ats-metric-icon">
-                    <TrendingUp size={20} />
-                  </div>
-                  <div className="ats-metric-val">{result.metrics?.actionVerbsCount || 0}</div>
-                  <div className="ats-metric-name">Action Verbs</div>
-                  <div className="ats-metric-sub">Impact driven</div>
-                </div>
-
-                <div className="ats-metric-card">
-                  <div className="ats-metric-icon">
-                    <Award size={20} />
-                  </div>
-                  <div className="ats-metric-val">{result.metrics?.quantifiedMetricsCount || 0}</div>
-                  <div className="ats-metric-name">KPI Metrics</div>
-                  <div className="ats-metric-sub">Measurable proof</div>
-                </div>
-              </div>
-
-              {/* Section Completeness (Education, Experience, Skills, Projects, Certifications) */}
-              <div className="ats-report-block">
-                <div className="ats-block-header">
-                  <BookOpen size={18} />
-                  <h4>Section Completeness & Header Detection</h4>
-                </div>
-                <div className="ats-sections-grid">
-                  {(result.sectionCompleteness || []).map((sec, idx) => (
-                    <div
-                      key={idx}
-                      className={`ats-section-card ${sec.status.toLowerCase()}`}
-                    >
-                      <div className="ats-section-card-top">
-                        <span className="ats-sec-name">{sec.name}</span>
-                        {sec.status === "Passed" ? (
-                          <span className="ats-status-badge passed">
-                            <CheckCircle2 size={13} />
-                            <span>Passed</span>
+              {activeMode === "analyze" ? (
+                /* ========================================================
+                   VIEW A: AI CV HEALTH & CONTENT QUALITY AUDIT
+                   ======================================================== */
+                <div className="cv-health-results-content">
+                  {/* Top Score Banner */}
+                  <div className="ats-score-banner cv-health-banner">
+                    <div className="ats-score-gauge-box">
+                      <div
+                        className="ats-circle-score"
+                        style={{
+                          borderColor:
+                            result.cvHealth?.cvQualityColor || "#10b981",
+                        }}
+                      >
+                        <div className="ats-circle-inner">
+                          <span className="ats-score-num">
+                            {result.cvHealth?.cvQualityScore || result.overallScore}
                           </span>
-                        ) : sec.status === "Warning" ? (
-                          <span className="ats-status-badge warning">
-                            <AlertTriangle size={13} />
-                            <span>Optional</span>
+                          <span className="ats-score-total">/ 100</span>
+                        </div>
+                      </div>
+                      <div
+                        className="ats-score-badge"
+                        style={{
+                          backgroundColor: `${
+                            result.cvHealth?.cvQualityColor || "#10b981"
+                          }18`,
+                          color:
+                            result.cvHealth?.cvQualityColor || "#10b981",
+                        }}
+                      >
+                        Grade {result.cvHealth?.cvGrade || "A"} Quality
+                      </div>
+                    </div>
+
+                    <div className="ats-score-details">
+                      <div className="ats-score-eyebrow">
+                        <Sparkles size={14} color="#1565d8" />
+                        <span>CV Health & Recruiter Readiness Audit:</span>
+                        <strong>{result.filename || "Uploaded Resume"}</strong>
+                      </div>
+                      <h3 className="ats-score-headline">
+                        {result.cvHealth?.cvQualityLabel ||
+                          "Interview-Ready Candidate Profile"}
+                      </h3>
+                      <p className="ats-summary-text">
+                        {result.cvHealth?.cvSummary || result.summary}
+                      </p>
+
+                      <div className="ats-quick-badges">
+                        <div className="ats-quick-pill">
+                          <Briefcase size={14} />
+                          <span>
+                            Seniority:{" "}
+                            <strong>
+                              {result.metrics?.wordCount > 650
+                                ? "Mid-to-Senior Professional"
+                                : "Early-to-Mid Career"}
+                            </strong>
                           </span>
-                        ) : (
-                          <span className="ats-status-badge missing">
-                            <AlertCircle size={13} />
-                            <span>Missing</span>
+                        </div>
+                        <div className="ats-quick-pill">
+                          <TrendingUp size={14} />
+                          <span>
+                            Power Verbs:{" "}
+                            <strong>
+                              {result.metrics?.actionVerbsCount || 0} Identified
+                            </strong>
                           </span>
+                        </div>
+                        <div className="ats-quick-pill">
+                          <FileText size={14} />
+                          <span>
+                            Length:{" "}
+                            <strong>
+                              {result.metrics?.wordCount || 0} words (
+                              {result.metrics?.estimatedPages || 1} pg)
+                            </strong>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4 Content Quality Pillars */}
+                  <div className="ats-report-block">
+                    <div className="ats-block-header">
+                      <BarChart3 size={18} />
+                      <h4>CV Content Quality Pillars</h4>
+                    </div>
+                    <div className="ats-pillars-grid">
+                      {(result.cvHealth?.contentPillars || []).map(
+                        (pillar, idx) => (
+                          <div key={idx} className="ats-pillar-card">
+                            <div className="ats-pillar-top">
+                              <span className="ats-pillar-title">
+                                {pillar.title}
+                              </span>
+                              <span className="ats-pillar-badge">
+                                {pillar.rating}
+                              </span>
+                            </div>
+                            <div className="ats-pillar-metric-row">
+                              <strong className="ats-pillar-score">
+                                {pillar.score}%
+                              </strong>
+                              <span className="ats-pillar-count">
+                                {pillar.count}
+                              </span>
+                            </div>
+                            <div className="ats-pillar-track">
+                              <div
+                                className="ats-pillar-fill"
+                                style={{
+                                  width: `${pillar.score}%`,
+                                  background:
+                                    pillar.score >= 85
+                                      ? "linear-gradient(90deg, #10b981, #059669)"
+                                      : pillar.score >= 70
+                                      ? "linear-gradient(90deg, #1565d8, #0284c7)"
+                                      : "linear-gradient(90deg, #f59e0b, #d97706)",
+                                }}
+                              />
+                            </div>
+                            <p className="ats-pillar-desc">{pillar.desc}</p>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section Quality & Structure Analysis */}
+                  <div className="ats-report-block">
+                    <div className="ats-block-header">
+                      <BookOpen size={18} />
+                      <h4>Section-by-Section Quality Review</h4>
+                    </div>
+                    <div className="ats-section-quality-list">
+                      {(result.cvHealth?.sectionQuality || []).map(
+                        (sec, idx) => (
+                          <div key={idx} className="ats-section-quality-card">
+                            <div className="ats-section-quality-header">
+                              <div className="ats-sec-title-wrap">
+                                <span className="ats-sec-num">0{idx + 1}</span>
+                                <h5 className="ats-sec-title">{sec.name}</h5>
+                              </div>
+                              <span
+                                className={`ats-quality-badge ${sec.status
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "-")}`}
+                              >
+                                {sec.status === "Strong" ? (
+                                  <CheckCircle2 size={13} />
+                                ) : (
+                                  <AlertTriangle size={13} />
+                                )}
+                                <span>{sec.status}</span>
+                              </span>
+                            </div>
+                            <div className="ats-sec-verdict">
+                              <strong>Recruiter Verdict:</strong> {sec.verdict}
+                            </div>
+                            <div className="ats-sec-advice-box">
+                              <Sparkles size={14} className="advice-icon" />
+                              <span>
+                                <strong>How to Polish:</strong> {sec.advice}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Standout Strengths vs Opportunities for Elevation */}
+                  <div className="ats-strengths-split-grid">
+                    {/* Strengths */}
+                    <div className="ats-strength-column positive">
+                      <div className="ats-column-head">
+                        <Star size={17} className="color-star" />
+                        <h5>Standout Strengths of Your CV</h5>
+                      </div>
+                      <div className="ats-strength-cards">
+                        {(result.cvHealth?.cvStrengths || []).map((st, i) => (
+                          <div key={i} className="ats-strength-item">
+                            <div className="ats-strength-icon">
+                              <CheckCircle2 size={16} />
+                            </div>
+                            <div>
+                              <h6>{st.title}</h6>
+                              <p>{st.detail}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Opportunities to Elevate */}
+                    <div className="ats-strength-column improve">
+                      <div className="ats-column-head">
+                        <Zap size={17} className="color-zap" />
+                        <h5>High-Impact Elevation Priorities</h5>
+                      </div>
+                      <div className="ats-strength-cards">
+                        {(result.cvHealth?.cvImprovements || []).map(
+                          (imp, i) => (
+                            <div key={i} className="ats-improvement-item">
+                              <div className="ats-imp-priority-tag">
+                                {imp.priority} Priority
+                              </div>
+                              <h6>{imp.title}</h6>
+                              <p>{imp.detail}</p>
+                            </div>
+                          )
                         )}
                       </div>
-                      <p className="ats-sec-detail">{sec.detail}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Skills Match Analysis (Matched vs Missing) */}
-              <div className="ats-report-block">
-                <div className="ats-block-header">
-                  <Target size={18} />
-                  <h4>Skills & Keyword Match Analysis</h4>
-                </div>
-
-                <div className="ats-skills-comparison">
-                  {/* Matched Keywords */}
-                  <div className="ats-skills-column matched">
-                    <div className="ats-col-head">
-                      <CheckCircle2 size={16} />
-                      <h5>
-                        Detected Skills & Keywords ({result.skillsMatch?.detectedTechnical?.length || 0})
-                      </h5>
-                    </div>
-                    <div className="ats-tags-cloud">
-                      {(result.skillsMatch?.detectedTechnical || []).map((skill, i) => (
-                        <span key={i} className="ats-skill-tag matched">
-                          <Check size={12} />
-                          <span>{skill}</span>
-                        </span>
-                      ))}
                     </div>
                   </div>
 
-                  {/* Missing Keywords & Recommended */}
-                  <div className="ats-skills-column missing">
-                    <div className="ats-col-head">
-                      <AlertTriangle size={16} />
-                      <h5>
-                        Missing Keywords & Recommended Skills ({result.skillsMatch?.missingKeywords?.length || 0})
-                      </h5>
+                  {/* Writing & Recruiter Scanability Checks */}
+                  <div className="ats-report-block">
+                    <div className="ats-block-header">
+                      <ShieldCheck size={18} />
+                      <h4>Executive Writing & Presentation Health</h4>
                     </div>
-                    <p className="ats-col-hint">
-                      Click any keyword to copy and paste into your resume:
-                    </p>
-                    <div className="ats-tags-cloud">
-                      {(result.skillsMatch?.missingKeywords || []).map((skill, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          className={`ats-skill-tag missing-btn ${copiedKey === skill ? "copied" : ""}`}
-                          onClick={() => handleCopyKeyword(skill)}
-                          title="Click to copy"
-                        >
-                          {copiedKey === skill ? <Check size={12} /> : <Copy size={12} />}
-                          <span>{skill}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Formatting & Readability Checks */}
-              <div className="ats-report-block">
-                <div className="ats-block-header">
-                  <CheckCircle2 size={18} />
-                  <h4>Resume Formatting & Readability Checks</h4>
-                </div>
-                <div className="ats-checks-list">
-                  {(result.formattingChecks || []).map((check, idx) => (
-                    <div key={idx} className="ats-check-row">
-                      <div className="ats-check-status-icon">
-                        {check.status === "Passed" ? (
+                    <div className="ats-checks-list">
+                      <div className="ats-check-row">
+                        <div className="ats-check-status-icon">
                           <CheckCircle2 size={18} className="color-passed" />
-                        ) : (
-                          <AlertTriangle size={18} className="color-warning" />
-                        )}
+                        </div>
+                        <div className="ats-check-info">
+                          <strong>Active Voice & Execution Language</strong>
+                          <span>
+                            {result.metrics?.actionVerbsCount || 0} past-tense
+                            action verbs identified, creating an assertive
+                            professional tone.
+                          </span>
+                        </div>
+                        <span className="ats-check-pill passed">Strong Tone</span>
                       </div>
-                      <div className="ats-check-info">
-                        <strong>{check.item}</strong>
-                        <span>{check.message}</span>
-                      </div>
-                      <span className={`ats-check-pill ${check.status.toLowerCase()}`}>
-                        {check.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Actionable Recommendations to Improve Resume */}
-              <div className="ats-report-block">
-                <div className="ats-block-header">
-                  <Sparkles size={18} />
-                  <h4>Actionable Recommendations to Elevate Your Resume</h4>
-                </div>
-                <div className="ats-recommendations-list">
-                  {(result.recommendations || []).map((rec, idx) => (
-                    <div key={idx} className={`ats-recommendation-item ${rec.type}`}>
-                      <div className="ats-rec-meta">
-                        <span className={`ats-rec-pill ${rec.type}`}>
-                          {rec.type === "high" ? "High Impact" : rec.type === "medium" ? "Medium Impact" : "Quick Win"}
+                      <div className="ats-check-row">
+                        <div className="ats-check-status-icon">
+                          <CheckCircle2 size={18} className="color-passed" />
+                        </div>
+                        <div className="ats-check-info">
+                          <strong>Hollow Buzzwords & Clichés Check</strong>
+                          <span>
+                            Free from unquantified buzzwords like 'hard worker'
+                            and 'go-getter' — focuses on actual technical
+                            outputs.
+                          </span>
+                        </div>
+                        <span className="ats-check-pill passed">
+                          Verified Clean
                         </span>
-                        <span className="ats-rec-category">{rec.category}</span>
                       </div>
-                      <h5>{rec.title}</h5>
-                      <p>{rec.text}</p>
+
+                      <div className="ats-check-row">
+                        <div className="ats-check-status-icon">
+                          <CheckCircle2 size={18} className="color-passed" />
+                        </div>
+                        <div className="ats-check-info">
+                          <strong>Recruiter 6-Second Scanability</strong>
+                          <span>
+                            Clean visual hierarchy with{" "}
+                            {result.metrics?.bulletPointsCount || 0} bullet
+                            points allows quick skim for hiring managers.
+                          </span>
+                        </div>
+                        <span className="ats-check-pill passed">
+                          Optimal Skim
+                        </span>
+                      </div>
+
+                      <div className="ats-check-row">
+                        <div className="ats-check-status-icon">
+                          <CheckCircle2 size={18} className="color-passed" />
+                        </div>
+                        <div className="ats-check-info">
+                          <strong>Contact Accessibility</strong>
+                          <span>
+                            Direct email ({result.contactInfo?.email}) and
+                            verified phone number present at the header.
+                          </span>
+                        </div>
+                        <span className="ats-check-pill passed">
+                          Direct Reach
+                        </span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* ========================================================
+                   VIEW B: ATS COMPATIBILITY & KEYWORD SCANNER REPORT
+                   ======================================================== */
+                <div className="ats-compatibility-results-content">
+                  {/* Top Score Banner */}
+                  <div className="ats-score-banner ats-mode-banner">
+                    <div className="ats-score-gauge-box">
+                      <div
+                        className="ats-circle-score"
+                        style={{ borderColor: result.scoreColor }}
+                      >
+                        <div className="ats-circle-inner">
+                          <span className="ats-score-num">
+                            {result.overallScore}
+                          </span>
+                          <span className="ats-score-total">/ 100</span>
+                        </div>
+                      </div>
+                      <div
+                        className="ats-score-badge"
+                        style={{
+                          backgroundColor: `${result.scoreColor}18`,
+                          color: result.scoreColor,
+                        }}
+                      >
+                        {result.scoreTier} ATS Match
+                      </div>
+                    </div>
+
+                    <div className="ats-score-details">
+                      <div className="ats-score-eyebrow">
+                        <Target size={14} color="#0284c7" />
+                        <span>ATS Parsing & Screening Algorithm Audit:</span>
+                        <strong>{result.filename || "Uploaded Resume"}</strong>
+                      </div>
+                      <h3 className="ats-score-headline">
+                        {result.scoreLabel}
+                      </h3>
+                      <p className="ats-summary-text">{result.summary}</p>
+
+                      <div className="ats-quick-badges">
+                        <div className="ats-quick-pill">
+                          <Target size={14} />
+                          <span>
+                            Keyword Match:{" "}
+                            <strong>{result.keywordMatchPercentage}%</strong>
+                          </span>
+                        </div>
+                        <div className="ats-quick-pill">
+                          <Layers size={14} />
+                          <span>
+                            Technical Skills:{" "}
+                            <strong>
+                              {result.metrics?.technicalSkillsCount || 0}
+                            </strong>
+                          </span>
+                        </div>
+                        <div className="ats-quick-pill">
+                          <Clock size={14} />
+                          <span>
+                            Length:{" "}
+                            <strong>
+                              {result.metrics?.wordCount || 0} words (
+                              {result.metrics?.estimatedPages || 1} pg)
+                            </strong>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4 KPI Metrics Grid */}
+                  <div className="ats-metrics-grid">
+                    <div className="ats-metric-card">
+                      <div className="ats-metric-icon">
+                        <Target size={20} />
+                      </div>
+                      <div className="ats-metric-val">
+                        {result.keywordMatchPercentage}%
+                      </div>
+                      <div className="ats-metric-name">Keyword Match</div>
+                      <div className="ats-metric-sub">Target role alignment</div>
+                    </div>
+
+                    <div className="ats-metric-card">
+                      <div className="ats-metric-icon">
+                        <BarChart3 size={20} />
+                      </div>
+                      <div className="ats-metric-val">
+                        {result.metrics?.bulletPointsCount || 0}
+                      </div>
+                      <div className="ats-metric-name">Bullet Points</div>
+                      <div className="ats-metric-sub">Parser scanability</div>
+                    </div>
+
+                    <div className="ats-metric-card">
+                      <div className="ats-metric-icon">
+                        <Layers size={20} />
+                      </div>
+                      <div className="ats-metric-val">
+                        {result.metrics?.technicalSkillsCount || 0}
+                      </div>
+                      <div className="ats-metric-name">Tech Competencies</div>
+                      <div className="ats-metric-sub">Indexed in parser</div>
+                    </div>
+
+                    <div className="ats-metric-card">
+                      <div className="ats-metric-icon">
+                        <Award size={20} />
+                      </div>
+                      <div className="ats-metric-val">
+                        {result.metrics?.quantifiedMetricsCount || 0}
+                      </div>
+                      <div className="ats-metric-name">KPI Metrics</div>
+                      <div className="ats-metric-sub">Measurable proof</div>
+                    </div>
+                  </div>
+
+                  {/* Skills Match Analysis (Matched vs Missing) */}
+                  <div className="ats-report-block">
+                    <div className="ats-block-header">
+                      <Target size={18} />
+                      <h4>Skills & Keyword Match Analysis</h4>
+                    </div>
+
+                    <div className="ats-skills-comparison">
+                      {/* Matched Keywords */}
+                      <div className="ats-skills-column matched">
+                        <div className="ats-col-head">
+                          <CheckCircle2 size={16} />
+                          <h5>
+                            Detected Skills & Keywords (
+                            {result.skillsMatch?.detectedTechnical?.length || 0})
+                          </h5>
+                        </div>
+                        <div className="ats-tags-cloud">
+                          {(
+                            result.skillsMatch?.detectedTechnical || []
+                          ).map((skill, i) => (
+                            <span key={i} className="ats-skill-tag matched">
+                              <Check size={12} />
+                              <span>{skill}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Missing Keywords & Recommended */}
+                      <div className="ats-skills-column missing">
+                        <div className="ats-col-head">
+                          <AlertTriangle size={16} />
+                          <h5>
+                            Missing Critical Keywords (
+                            {result.skillsMatch?.missingKeywords?.length || 0})
+                          </h5>
+                        </div>
+                        <p className="ats-col-hint">
+                          Click any keyword to copy and paste into your resume:
+                        </p>
+                        <div className="ats-tags-cloud">
+                          {(
+                            result.skillsMatch?.missingKeywords || []
+                          ).map((skill, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              className={`ats-skill-tag missing-btn ${
+                                copiedKey === skill ? "copied" : ""
+                              }`}
+                              onClick={() => handleCopyKeyword(skill)}
+                              title="Click to copy"
+                            >
+                              {copiedKey === skill ? (
+                                <Check size={12} />
+                              ) : (
+                                <Copy size={12} />
+                              )}
+                              <span>{skill}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section Completeness & Header Detection */}
+                  <div className="ats-report-block">
+                    <div className="ats-block-header">
+                      <BookOpen size={18} />
+                      <h4>
+                        ATS Section Completeness & Header Standardization
+                      </h4>
+                    </div>
+                    <div className="ats-sections-grid">
+                      {(result.sectionCompleteness || []).map((sec, idx) => (
+                        <div
+                          key={idx}
+                          className={`ats-section-card ${sec.status.toLowerCase()}`}
+                        >
+                          <div className="ats-section-card-top">
+                            <span className="ats-sec-name">{sec.name}</span>
+                            {sec.status === "Passed" ? (
+                              <span className="ats-status-badge passed">
+                                <CheckCircle2 size={13} />
+                                <span>Passed</span>
+                              </span>
+                            ) : sec.status === "Warning" ? (
+                              <span className="ats-status-badge warning">
+                                <AlertTriangle size={13} />
+                                <span>Optional</span>
+                              </span>
+                            ) : (
+                              <span className="ats-status-badge missing">
+                                <AlertCircle size={13} />
+                                <span>Missing</span>
+                              </span>
+                            )}
+                          </div>
+                          <p className="ats-sec-detail">{sec.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Formatting & Readability Checks */}
+                  <div className="ats-report-block">
+                    <div className="ats-block-header">
+                      <CheckCircle2 size={18} />
+                      <h4>ATS Parser Formatting & Readability Checks</h4>
+                    </div>
+                    <div className="ats-checks-list">
+                      {(result.formattingChecks || []).map((check, idx) => (
+                        <div key={idx} className="ats-check-row">
+                          <div className="ats-check-status-icon">
+                            {check.status === "Passed" ? (
+                              <CheckCircle2 size={18} className="color-passed" />
+                            ) : (
+                              <AlertTriangle
+                                size={18}
+                                className="color-warning"
+                              />
+                            )}
+                          </div>
+                          <div className="ats-check-info">
+                            <strong>{check.item}</strong>
+                            <span>{check.message}</span>
+                          </div>
+                          <span
+                            className={`ats-check-pill ${check.status.toLowerCase()}`}
+                          >
+                            {check.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actionable Recommendations to Bypass ATS Filters */}
+                  <div className="ats-report-block">
+                    <div className="ats-block-header">
+                      <Sparkles size={18} />
+                      <h4>
+                        Actionable Recommendations to Bypass Automated ATS
+                        Filters
+                      </h4>
+                    </div>
+                    <div className="ats-recommendations-list">
+                      {(result.recommendations || []).map((rec, idx) => (
+                        <div
+                          key={idx}
+                          className={`ats-recommendation-item ${rec.type}`}
+                        >
+                          <div className="ats-rec-meta">
+                            <span className={`ats-rec-pill ${rec.type}`}>
+                              {rec.type === "high"
+                                ? "High Impact"
+                                : rec.type === "medium"
+                                ? "Medium Impact"
+                                : "Quick Win"}
+                            </span>
+                            <span className="ats-rec-category">
+                              {rec.category}
+                            </span>
+                          </div>
+                          <h5>{rec.title}</h5>
+                          <p>{rec.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Bottom Action Bar */}
               <div className="ats-results-footer">
@@ -876,7 +1338,13 @@ export default function ResumeAtsModal({
                   disabled={isExportingPdf}
                 >
                   <Download size={16} />
-                  <span>{isExportingPdf ? "Generating PDF..." : "Download ATS Report (PDF)"}</span>
+                  <span>
+                    {isExportingPdf
+                      ? "Generating PDF..."
+                      : activeMode === "analyze"
+                      ? "Download CV Health Report (PDF)"
+                      : "Download ATS Report (PDF)"}
+                  </span>
                 </button>
 
                 <button

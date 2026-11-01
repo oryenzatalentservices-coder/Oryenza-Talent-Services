@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUpRight, ArrowDown, UserCheck, Rocket } from "lucide-react";
+import { ArrowUpRight, ArrowDown, UserCheck, Rocket, Target } from "lucide-react";
 import HeroOrbit from "./HeroOrbit";
 
 export default function Hero({
@@ -62,11 +62,20 @@ export default function Hero({
               <button
                 type="button"
                 className="btn hero-ai-btn"
-                onClick={handleOpenAiSuite}
-                title="Upload resume to evaluate quality and check ATS compatibility score"
+                onClick={onOpenAnalyzeCv || handleOpenAiSuite}
+                title="Upload resume for in-depth AI CV health, writing impact, and content review"
               >
                 <Rocket size={17} className="hero-ai-btn-icon" />
-                <span>Analyze CV & Check ATS Score</span>
+                <span>Analyze CV</span>
+              </button>
+              <button
+                type="button"
+                className="btn hero-ats-btn"
+                onClick={onOpenAtsScore || handleOpenAiSuite}
+                title="Test your resume against real-world ATS screening software and keyword match"
+              >
+                <Target size={17} className="hero-ats-btn-icon" />
+                <span>Check ATS Score</span>
               </button>
             </div>
 

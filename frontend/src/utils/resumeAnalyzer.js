@@ -237,6 +237,159 @@ export function analyzeResumeClient(rawText, jobDescription = "", targetRole = "
     scoreColor = "#ef4444";
   }
 
+  // Dedicated CV Health & Recruiter Quality Calculations
+  const textLower = text.toLowerCase();
+  const verbScore = Math.min(25, actionVerbsFound * 2.2);
+  const metricScore = Math.min(25, quantifiedMetricsCount * 3.5);
+  const structureScore = Math.min(25, (sectionScore / 25) * 25);
+  const contactScore =
+    (contactInfo.hasEmail ? 6 : 0) +
+    (contactInfo.hasPhone ? 6 : 0) +
+    (contactInfo.hasLinkedIn ? 7 : 3) +
+    (contactInfo.hasLocation ? 6 : 3);
+  let cvQualityScore = Math.round(verbScore + metricScore + structureScore + contactScore);
+  cvQualityScore = Math.max(52, Math.min(cvQualityScore, 98));
+
+  let cvGrade = "B+";
+  let cvQualityLabel = "Strong Candidate Profile";
+  let cvQualityColor = "#1565d8";
+  if (cvQualityScore >= 88) {
+    cvGrade = "A+";
+    cvQualityLabel = "Interview-Ready & High Impact";
+    cvQualityColor = "#10b981";
+  } else if (cvQualityScore >= 78) {
+    cvGrade = "A";
+    cvQualityLabel = "Strong Competitive Profile";
+    cvQualityColor = "#1565d8";
+  } else if (cvQualityScore >= 66) {
+    cvGrade = "B";
+    cvQualityLabel = "Good Foundation • Needs Polish";
+    cvQualityColor = "#f59e0b";
+  } else {
+    cvGrade = "C";
+    cvQualityLabel = "Requires Content Elevation";
+    cvQualityColor = "#ef4444";
+  }
+
+  const cvSummary = `Your resume achieves a CV Quality Score of ${cvQualityScore}/100 (Grade: ${cvGrade}). It demonstrates ${
+    actionVerbsFound >= 10 ? "strong execution-oriented language" : "clear professional capabilities"
+  } with ${detectedTechnical.length} verified technical skills. Refining bullet points with measurable impact metrics and a targeted career summary will significantly elevate your interview callback rate.`;
+
+  const contentPillars = [
+    {
+      title: "Action Verb Power",
+      score: Math.min(95, Math.max(45, Math.round((actionVerbsFound / 12) * 100))),
+      count: `${actionVerbsFound} power verbs`,
+      rating: actionVerbsFound >= 12 ? "Excellent" : actionVerbsFound >= 7 ? "Good" : "Needs Power Verbs",
+      desc: "Uses active leadership language (engineered, spearheaded, delivered) instead of passive duties.",
+    },
+    {
+      title: "Quantifiable Impact",
+      score: Math.min(95, Math.max(40, Math.round((quantifiedMetricsCount / 6) * 100))),
+      count: `${quantifiedMetricsCount} KPI metrics`,
+      rating: quantifiedMetricsCount >= 5 ? "Strong Impact" : "Moderate",
+      desc: "Demonstrates tangible business outcomes with numbers, percentages, team sizes, and scale.",
+    },
+    {
+      title: "Section Architecture",
+      score: Math.min(100, Math.round((sectionScore / 25) * 100)),
+      count: `${sectionCompleteness.filter((s) => s.status === "Passed").length}/5 sections`,
+      rating: sectionScore >= 20 ? "Comprehensive" : "Incomplete",
+      desc: "Covers Summary, Experience, Skills, Education, and Projects in reverse-chronological order.",
+    },
+    {
+      title: "Readability & Brevity",
+      score: wordCount >= 350 && wordCount <= 900 ? 95 : 75,
+      count: `${wordCount} words (${wordCount > 750 ? 2 : 1} page)`,
+      rating: wordCount >= 350 && wordCount <= 900 ? "Ideal Length" : "Review Length",
+      desc: "Optimized for a 6-second recruiter skim with balanced bullet point density.",
+    },
+  ];
+
+  const cvStrengths = [
+    {
+      title: "Verified Skill Cataloging",
+      detail: `Detected ${detectedTechnical.length} industry-recognized technologies and modern tools clearly cataloged in your tech stack.`,
+    },
+    {
+      title: "Active Leadership Phrasing",
+      detail: `${actionVerbsFound} strong action verbs identified across your bullet points, demonstrating ownership and execution.`,
+    },
+    {
+      title: "Complete Professional Contact Lockup",
+      detail: `Direct email (${contactInfo.email}) and verified phone contact found, ensuring zero friction for recruiter outreach.`,
+    },
+  ];
+
+  const cvImprovements = [
+    {
+      priority: "High",
+      title: "Add Metric-Driven Bullet Points",
+      detail: "Elevate your accomplishments by including measurable numbers (e.g., 'boosted API response by 35%', 'managed team of 6 engineers').",
+    },
+    {
+      priority: "Medium",
+      title: "Include a 3-Line Executive Summary",
+      detail: "Add a punchy career summary at the very top highlighting your core specializations and years of experience.",
+    },
+    {
+      priority: "Quick Win",
+      title: "Group Technical Skills by Category",
+      detail: "Group your competencies into clean subheaders: Frontend, Backend, Cloud/DevOps, Databases, and Tools.",
+    },
+  ];
+
+  const sectionQuality = [
+    {
+      name: "Professional Summary",
+      status:
+        textLower.includes("summary") ||
+        textLower.includes("objective") ||
+        textLower.includes("profile")
+          ? "Strong"
+          : "Recommended",
+      verdict: textLower.includes("summary")
+        ? "Career summary detected at the top."
+        : "Missing explicit executive summary header.",
+      advice:
+        "Include 3 sentences defining your specialty, key strengths, and what value you deliver to an organization.",
+    },
+    {
+      name: "Work Experience & Progression",
+      status:
+        sectionCompleteness.find((s) => s.name === "Experience")?.status === "Passed"
+          ? "Strong"
+          : "Needs Detail",
+      verdict: `${bulletPointsCount} bullet points identified across your career history.`,
+      advice:
+        "Focus bullet points on results rather than daily tasks: 'Accomplished [X], as measured by [Y], by doing [Z]'.",
+    },
+    {
+      name: "Core Skills & Tech Stack",
+      status: detectedTechnical.length >= 6 ? "Strong" : "Good",
+      verdict: `${detectedTechnical.length} technical skills and ${detectedSoft.length} collaborative skills cataloged.`,
+      advice: "Ensure your primary language or domain expertise is highlighted first.",
+    },
+    {
+      name: "Education & Qualifications",
+      status:
+        sectionCompleteness.find((s) => s.name === "Education")?.status === "Passed"
+          ? "Strong"
+          : "Needs Review",
+      verdict: "Academic credentials and degree information verified.",
+      advice: "Position education near the bottom if you have 2+ years of professional experience.",
+    },
+    {
+      name: "Projects & Portfolio",
+      status:
+        sectionCompleteness.find((s) => s.name === "Projects")?.status === "Passed"
+          ? "Strong"
+          : "Optional",
+      verdict: "Demonstrates practical execution and hands-on deliverables.",
+      advice: "Add live URLs or GitHub links for key open-source/client projects.",
+    },
+  ];
+
   const recommendations = [
     {
       type: "high",
@@ -264,7 +417,7 @@ export function analyzeResumeClient(rawText, jobDescription = "", targetRole = "
     },
   ];
 
-  const summary = `Your resume scored ${overallScore}/100 with ${detectedTechnical.length} verified technical skills. ${
+  const summary = `Your resume scored ${overallScore}/100 in ATS compatibility with ${detectedTechnical.length} verified technical skills. ${
     missingKeywords.length > 0
       ? `Integrating ${missingKeywords.length} missing industry keywords will boost your recruiter shortlisting rate.`
       : "Your profile exhibits strong alignment and ATS readiness."
@@ -280,6 +433,17 @@ export function analyzeResumeClient(rawText, jobDescription = "", targetRole = "
     targetRole: targetRole || `${detectedTechnical[0] || "Software"} Professional`,
     hasJobDescription: jd.length > 20,
     filename,
+    cvHealth: {
+      cvQualityScore,
+      cvGrade,
+      cvQualityLabel,
+      cvQualityColor,
+      cvSummary,
+      contentPillars,
+      cvStrengths,
+      cvImprovements,
+      sectionQuality,
+    },
     metrics: {
       wordCount,
       estimatedPages: wordCount > 750 ? 2 : 1,

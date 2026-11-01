@@ -224,29 +224,57 @@ exports.downloadResume = async (req, res) => {
       } catch (_) {}
     }
 
-    // Self-healing: if file is not on disk (e.g. Render free tier restarted), recover from database!
+    // Self-healing: if file is not on disk (or filename was original_name), recover from database!
     if (!fileBuffer) {
       try {
         const candidates = await db.getCandidates({});
+        const candidateIdQuery = req.query.candidate_id || req.query.id;
         const matched = candidates.find(
           (c) =>
+            (candidateIdQuery && String(c.id) === String(candidateIdQuery)) ||
             c.resume_path === sanitizedFilename ||
             c.resume_original_name === sanitizedFilename ||
-            (c.resume_path && path.basename(c.resume_path) === sanitizedFilename)
+            (c.resume_path && path.basename(c.resume_path) === sanitizedFilename) ||
+            (c.resume_original_name &&
+              path.basename(c.resume_original_name).toLowerCase() ===
+                sanitizedFilename.toLowerCase())
         );
 
-        if (matched && matched.resume_data) {
-          fileBuffer = Buffer.from(matched.resume_data, "base64");
+        if (matched) {
           if (matched.resume_original_name) {
             originalName = matched.resume_original_name;
           }
-          // Restore to disk for subsequent fast access
-          try {
-            if (!fs.existsSync(baseUploadDir)) {
-              fs.mkdirSync(baseUploadDir, { recursive: true });
+
+          // 1. Check if the candidate's actual resume_path exists on disk
+          if (matched.resume_path) {
+            const diskPath = path.resolve(
+              baseUploadDir,
+              path.basename(matched.resume_path)
+            );
+            if (diskPath.startsWith(baseUploadDir) && fs.existsSync(diskPath)) {
+              try {
+                fileBuffer = fs.readFileSync(diskPath);
+              } catch (_) {}
             }
-            fs.writeFileSync(filePath, fileBuffer);
-          } catch (_) {}
+          }
+
+          // 2. If not on disk, recover from stored resume_data base64 buffer
+          if (!fileBuffer && matched.resume_data) {
+            fileBuffer = Buffer.from(matched.resume_data, "base64");
+            // Restore to disk for subsequent fast access
+            try {
+              if (!fs.existsSync(baseUploadDir)) {
+                fs.mkdirSync(baseUploadDir, { recursive: true });
+              }
+              const saveTarget = path.resolve(
+                baseUploadDir,
+                path.basename(matched.resume_path || sanitizedFilename)
+              );
+              if (saveTarget.startsWith(baseUploadDir)) {
+                fs.writeFileSync(saveTarget, fileBuffer);
+              }
+            } catch (_) {}
+          }
         }
       } catch (err) {
         console.error("Error recovering resume from database:", err);

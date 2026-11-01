@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   skills TEXT DEFAULT NULL,
   resume_path VARCHAR(255) DEFAULT NULL,
   resume_original_name VARCHAR(255) DEFAULT NULL,
+  resume_data LONGTEXT DEFAULT NULL,
   portfolio_url VARCHAR(255) DEFAULT NULL,
   status ENUM('applied', 'screening', 'interview', 'offered', 'placed', 'rejected') DEFAULT 'applied',
   admin_notes TEXT DEFAULT NULL,

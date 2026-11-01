@@ -199,7 +199,11 @@ export default function AdminDashboard({ onExit }) {
       return;
     }
 
-    const viewUrl = api.getResumeViewUrl(selectedItem.resume_path, adminKey);
+    const viewUrl = api.getResumeViewUrl(
+      selectedItem.resume_path,
+      adminKey,
+      selectedItem.id
+    );
 
     fetch(viewUrl)
       .then((res) => {
@@ -1533,7 +1537,8 @@ export default function AdminDashboard({ onExit }) {
                             <a
                               href={api.getResumeDownloadUrl(
                                 cand.resume_path,
-                                adminKey
+                                adminKey,
+                                cand.id
                               )}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -2460,7 +2465,11 @@ export default function AdminDashboard({ onExit }) {
                                 window.open(resumeBlobUrl, "_blank");
                               } else {
                                 window.open(
-                                  api.getResumeDownloadUrl(selectedItem.resume_path, adminKey),
+                                  api.getResumeDownloadUrl(
+                                    selectedItem.resume_path,
+                                    adminKey,
+                                    selectedItem.id
+                                  ),
                                   "_blank"
                                 );
                               }
@@ -2474,7 +2483,11 @@ export default function AdminDashboard({ onExit }) {
                           <a
                             href={
                               resumeBlobUrl ||
-                              api.getResumeDownloadUrl(selectedItem.resume_path, adminKey)
+                              api.getResumeDownloadUrl(
+                                selectedItem.resume_path,
+                                adminKey,
+                                selectedItem.id
+                              )
                             }
                             download={selectedItem.resume_original_name || "Candidate_Resume.pdf"}
                             className="admin-resume-viewer-btn"
