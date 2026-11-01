@@ -1085,3 +1085,51 @@ html.oryenza-dark .admin-export-item-desc {
     width: 100%;
   }
 }
+
+/* 1-Click WhatsApp Quick Action Button */
+.admin-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: #25d366;
+  color: #ffffff;
+  border: 1px solid #1ebc57;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.2;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.admin-whatsapp-btn:hover {
+  background: #1fa855;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.45);
+}
+
+.admin-whatsapp-btn svg {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+
+html.oryenza-dark .admin-whatsapp-btn {
+  background: #25d366;
+  color: #0b192e;
+  border-color: #25d366;
+  font-weight: 750;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.35);
+}
+
+html.oryenza-dark .admin-whatsapp-btn:hover {
+  background: #2ee06f;
+  color: #040b15;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.55);
+}
+
