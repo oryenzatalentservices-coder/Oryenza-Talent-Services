@@ -79,28 +79,45 @@ export default function CandidateModal({ isOpen, onClose }) {
 
       // Persist true candidate entry to localStorage as backup
       try {
-        const trueCandidate = {
-          id: (res && res.data && res.data.id) || "cand_" + Date.now(),
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          current_role: formData.current_role,
-          experience_years: formData.experience_years,
-          preferred_location: formData.preferred_location,
-          skills: formData.skills,
-          resume_path: (res && res.data && res.data.resume_path) || null,
-          resume_original_name: resumeFile ? resumeFile.name : null,
-          status: "applied",
-          created_at: new Date().toISOString(),
+        const saveCandidateToStorage = (dataUrl = null) => {
+          try {
+            const trueCandidate = {
+              id: (res && res.data && res.data.id) || "cand_" + Date.now(),
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
+              current_role: formData.current_role,
+              experience_years: formData.experience_years,
+              preferred_location: formData.preferred_location,
+              skills: formData.skills,
+              resume_path: (res && res.data && res.data.resume_path) || (resumeFile ? resumeFile.name : null),
+              resume_original_name: resumeFile ? resumeFile.name : null,
+              resume_data_url: dataUrl || null,
+              status: "applied",
+              created_at: new Date().toISOString(),
+            };
+            const currentList = JSON.parse(
+              localStorage.getItem("oryenza_true_candidates") || "[]"
+            );
+            const filtered = currentList.filter(
+              (c) => c.id !== trueCandidate.id && c.email !== trueCandidate.email
+            );
+            filtered.unshift(trueCandidate);
+            localStorage.setItem(
+              "oryenza_true_candidates",
+              JSON.stringify(filtered.slice(0, 50))
+            );
+          } catch (_) {}
         };
-        const currentList = JSON.parse(
-          localStorage.getItem("oryenza_true_candidates") || "[]"
-        );
-        currentList.unshift(trueCandidate);
-        localStorage.setItem(
-          "oryenza_true_candidates",
-          JSON.stringify(currentList.slice(0, 100))
-        );
+
+        if (resumeFile && resumeFile.size < 3 * 1024 * 1024) {
+          const reader = new FileReader();
+          reader.onload = () => saveCandidateToStorage(reader.result);
+          reader.onerror = () => saveCandidateToStorage(null);
+          reader.readAsDataURL(resumeFile);
+        } else {
+          saveCandidateToStorage(null);
+        }
       } catch (_) {}
 
       setStatusType("success");

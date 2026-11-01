@@ -160,7 +160,22 @@ export default function AdminDashboard({ onExit }) {
     setResumeLoading(true);
     setResumeError(null);
 
-    const filename = selectedItem.resume_path || "";
+    // 1. Instant check: if resume_data_url or resume_data is stored in record, use immediately!
+    if (selectedItem.resume_data_url) {
+      setResumeBlobUrl(selectedItem.resume_data_url);
+      setResumeLoading(false);
+      setResumeError(null);
+      return;
+    }
+    if (selectedItem.resume_data) {
+      const dataUrl = `data:application/pdf;base64,${selectedItem.resume_data}`;
+      setResumeBlobUrl(dataUrl);
+      setResumeLoading(false);
+      setResumeError(null);
+      return;
+    }
+
+    const filename = selectedItem.resume_path || selectedItem.resume_original_name || "";
     const isPdf = filename.toLowerCase().endsWith(".pdf");
 
     if (!isPdf) {
@@ -174,7 +189,7 @@ export default function AdminDashboard({ onExit }) {
     fetch(viewUrl)
       .then((res) => {
         if (!res.ok) {
-          throw new Error(`Resume preview not available (${res.status})`);
+          throw new Error(`Resume file not found (${res.status})`);
         }
         return res.blob();
       })
@@ -183,12 +198,15 @@ export default function AdminDashboard({ onExit }) {
         const objectUrl = URL.createObjectURL(blob);
         setResumeBlobUrl(objectUrl);
         setResumeLoading(false);
+        setResumeError(null);
       })
       .catch((err) => {
         if (!active) return;
-        console.warn("Direct blob fetch failed, fallback to view URL:", err);
-        setResumeBlobUrl(viewUrl);
+        setResumeBlobUrl(null);
         setResumeLoading(false);
+        setResumeError(
+          "The resume file is not available on the server (it may have been submitted prior to persistent storage sync or cleared during server sleep). You can contact the candidate directly to request an updated CV."
+        );
       });
 
     return () => {
@@ -197,7 +215,7 @@ export default function AdminDashboard({ onExit }) {
         URL.revokeObjectURL(resumeBlobUrl);
       }
     };
-  }, [selectedItem?.id, selectedItem?.resume_path, itemType]);
+  }, [selectedItem?.id, selectedItem?.resume_path, selectedItem?.resume_data_url, itemType]);
 
   // Export dropdown menu state
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -1520,21 +1538,32 @@ export default function AdminDashboard({ onExit }) {
                     <div className="admin-resume-viewer-actions">
                       {selectedItem.resume_path && (
                         <>
-                          <a
-                            href={api.getResumeDownloadUrl(selectedItem.resume_path, adminKey)}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (resumeBlobUrl) {
+                                window.open(resumeBlobUrl, "_blank");
+                              } else {
+                                window.open(
+                                  api.getResumeDownloadUrl(selectedItem.resume_path, adminKey),
+                                  "_blank"
+                                );
+                              }
+                            }}
                             className="admin-resume-viewer-btn"
                             title="Open full PDF in new browser tab"
                           >
                             <ExternalLink size={13} />
                             <span>New Tab</span>
-                          </a>
+                          </button>
                           <a
-                            href={api.getResumeDownloadUrl(selectedItem.resume_path, adminKey)}
-                            download
+                            href={
+                              resumeBlobUrl ||
+                              api.getResumeDownloadUrl(selectedItem.resume_path, adminKey)
+                            }
+                            download={selectedItem.resume_original_name || "Candidate_Resume.pdf"}
                             className="admin-resume-viewer-btn"
-                            title="Download original CV file"
+                            title="Download CV file"
                           >
                             <Download size={13} />
                             <span>Download</span>
@@ -1561,22 +1590,34 @@ export default function AdminDashboard({ onExit }) {
                       />
                     ) : resumeError ? (
                       <div className="admin-resume-empty-state">
-                        <AlertCircle size={36} style={{ color: "#f59e0b", marginBottom: "12px" }} />
-                        <p style={{ margin: "0 0 8px 0", fontWeight: 600, color: "var(--ink)" }}>
+                        <AlertCircle size={38} style={{ color: "#f59e0b", marginBottom: "12px" }} />
+                        <p style={{ margin: "0 0 6px 0", fontWeight: 700, fontSize: "1rem", color: "var(--ink)" }}>
+                          Resume File Unavailable
+                        </p>
+                        <p style={{ margin: "0 0 16px 0", fontSize: "0.85rem", maxWidth: "460px", color: "var(--muted)", lineHeight: 1.55 }}>
                           {resumeError}
                         </p>
-                        {selectedItem.resume_path && (
+                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" }}>
+                          {getCandidateWhatsAppUrl(selectedItem) && (
+                            <a
+                              href={getCandidateWhatsAppUrl(selectedItem)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="admin-whatsapp-btn"
+                              style={{ padding: "8px 14px", fontSize: "0.84rem" }}
+                            >
+                              <WhatsAppIcon size={14} />
+                              <span>WhatsApp {selectedItem.name.split(" ")[0]} for CV</span>
+                            </a>
+                          )}
                           <a
-                            href={api.getResumeDownloadUrl(selectedItem.resume_path, adminKey)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="admin-resume-btn"
-                            style={{ marginTop: "12px" }}
+                            href={`mailto:${selectedItem.email}?subject=Oryenza%20Talent%20Services%20-%20Resume%20File%20Request&body=Hi%20${encodeURIComponent(selectedItem.name)},%0A%0AWe%20received%20your%20application%20for%20the%20${encodeURIComponent(selectedItem.current_role || "candidate")}%20position.%20Please%20reply%20with%20your%20latest%20PDF%20Resume/CV%20attached.%0A%0ABest%20regards,%0AOryenza%20Talent%20Services`}
+                            className="admin-btn-outline"
+                            style={{ padding: "6px 14px", fontSize: "0.84rem" }}
                           >
-                            <Download size={14} />
-                            <span>Download File Directly</span>
+                            <span>✉ Email Candidate</span>
                           </a>
-                        )}
+                        </div>
                       </div>
                     ) : (
                       <div className="admin-resume-empty-state">

@@ -415,6 +415,7 @@ const db = {
         skills: candidate.skills || null,
         resume_path: candidate.resume_path || null,
         resume_original_name: candidate.resume_original_name || null,
+        resume_data: candidate.resume_data || null,
         portfolio_url: candidate.portfolio_url || null,
         status: "applied",
         admin_notes: null,

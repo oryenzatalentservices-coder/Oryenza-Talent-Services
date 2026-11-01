@@ -95,10 +95,20 @@ exports.createCandidate = async (req, res) => {
 
     let resume_path = null;
     let resume_original_name = null;
+    let resume_data = null;
 
     if (req.file) {
       resume_path = path.basename(req.file.filename);
       resume_original_name = path.basename(req.file.originalname).replace(/[^a-zA-Z0-9_.\-\s()]/g, "");
+      try {
+        const fileBuf = fs.readFileSync(req.file.path);
+        // Retain base64 for files up to 6MB so Render ephemeral disk wiping never loses resumes
+        if (fileBuf && fileBuf.length <= 6 * 1024 * 1024) {
+          resume_data = fileBuf.toString("base64");
+        }
+      } catch (err) {
+        console.error("Error caching file buffer:", err);
+      }
     }
 
     const newCandidate = await db.createCandidate({
@@ -112,6 +122,7 @@ exports.createCandidate = async (req, res) => {
       portfolio_url: sanitizedPortfolioUrl,
       resume_path,
       resume_original_name,
+      resume_data,
     });
 
     return res.status(201).json({
@@ -187,7 +198,7 @@ exports.updateCandidate = async (req, res) => {
 };
 
 // Download / view resume file (Hardened against path traversal and MIME spoofing)
-exports.downloadResume = (req, res) => {
+exports.downloadResume = async (req, res) => {
   try {
     const { filename } = req.params;
     if (!filename) {
@@ -204,7 +215,45 @@ exports.downloadResume = (req, res) => {
       return res.status(403).json({ success: false, error: "Access denied." });
     }
 
-    if (!fs.existsSync(filePath)) {
+    let fileBuffer = null;
+    let originalName = sanitizedFilename;
+
+    if (fs.existsSync(filePath)) {
+      try {
+        fileBuffer = fs.readFileSync(filePath);
+      } catch (_) {}
+    }
+
+    // Self-healing: if file is not on disk (e.g. Render free tier restarted), recover from database!
+    if (!fileBuffer) {
+      try {
+        const candidates = await db.getCandidates({});
+        const matched = candidates.find(
+          (c) =>
+            c.resume_path === sanitizedFilename ||
+            c.resume_original_name === sanitizedFilename ||
+            (c.resume_path && path.basename(c.resume_path) === sanitizedFilename)
+        );
+
+        if (matched && matched.resume_data) {
+          fileBuffer = Buffer.from(matched.resume_data, "base64");
+          if (matched.resume_original_name) {
+            originalName = matched.resume_original_name;
+          }
+          // Restore to disk for subsequent fast access
+          try {
+            if (!fs.existsSync(baseUploadDir)) {
+              fs.mkdirSync(baseUploadDir, { recursive: true });
+            }
+            fs.writeFileSync(filePath, fileBuffer);
+          } catch (_) {}
+        }
+      } catch (err) {
+        console.error("Error recovering resume from database:", err);
+      }
+    }
+
+    if (!fileBuffer) {
       return res
         .status(404)
         .json({ success: false, error: "Resume file not found." });
@@ -213,14 +262,17 @@ exports.downloadResume = (req, res) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     const ext = path.extname(sanitizedFilename).toLowerCase();
     const isInline = req.query.inline === "true" || req.query.view === "inline";
+    const contentType = ext === ".pdf" ? "application/pdf" : "application/octet-stream";
+
+    res.setHeader("Content-Type", contentType);
 
     if (isInline && ext === ".pdf") {
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `inline; filename="${sanitizedFilename}"`);
-      return res.sendFile(filePath);
+      res.setHeader("Content-Disposition", `inline; filename="${originalName}"`);
+      return res.send(fileBuffer);
     }
 
-    return res.download(filePath, sanitizedFilename);
+    res.setHeader("Content-Disposition", `attachment; filename="${originalName}"`);
+    return res.send(fileBuffer);
   } catch (err) {
     console.error("Error downloading resume:", err);
     return res
