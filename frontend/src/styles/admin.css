@@ -797,6 +797,197 @@ html.oryenza-dark .admin-resume-btn {
   overflow-y: auto;
 }
 
+/* Candidate Side-by-Side Split Modal */
+.admin-detail-modal.admin-candidate-split-modal {
+  max-width: 1200px;
+  width: 95vw;
+  max-height: 92vh;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-split-layout {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 26px;
+  align-items: stretch;
+  min-height: 560px;
+  max-height: calc(92vh - 90px);
+}
+
+.admin-split-left {
+  overflow-y: auto;
+  padding-right: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-split-left::-webkit-scrollbar {
+  width: 6px;
+}
+.admin-split-left::-webkit-scrollbar-thumb {
+  background: var(--line, #dce5ef);
+  border-radius: 4px;
+}
+html.oryenza-dark .admin-split-left::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+}
+
+.admin-split-right {
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  border: 1px solid var(--line, #dce5ef);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+html.oryenza-dark .admin-split-right {
+  background: #091729;
+  border-color: #1e3a5f;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.admin-resume-viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line, #dce5ef);
+  gap: 12px;
+}
+
+html.oryenza-dark .admin-resume-viewer-header {
+  background: #0f243e;
+  border-color: #1e3a5f;
+}
+
+.admin-resume-viewer-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--navy, #0b192c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.oryenza-dark .admin-resume-viewer-title {
+  color: #38bdf8;
+}
+
+.admin-resume-viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.admin-resume-viewer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+html.oryenza-dark .admin-resume-viewer-btn {
+  background: #112642;
+  border-color: #244166;
+  color: #cbd5e1;
+}
+
+.admin-resume-viewer-btn:hover {
+  background: var(--blue, #1565d8);
+  border-color: var(--blue, #1565d8);
+  color: #ffffff;
+}
+
+.admin-resume-viewer-body {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;
+  background: #525659;
+}
+
+.admin-resume-iframe {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  border: none;
+  min-height: 520px;
+  background: #ffffff;
+}
+
+.admin-resume-loading-state,
+.admin-resume-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  flex: 1;
+  min-height: 400px;
+  background: #f8fafc;
+  color: var(--muted, #64748b);
+}
+
+html.oryenza-dark .admin-resume-loading-state,
+html.oryenza-dark .admin-resume-empty-state {
+  background: #091729;
+  color: #94a3b8;
+}
+
+.admin-resume-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(56, 189, 248, 0.2);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: adminSpin 0.8s linear infinite;
+  margin-bottom: 14px;
+}
+
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 960px) {
+  .admin-detail-modal.admin-candidate-split-modal {
+    max-height: 94vh;
+    padding: 18px;
+  }
+  .admin-split-layout {
+    grid-template-columns: 1fr;
+    max-height: none;
+    height: auto;
+  }
+  .admin-split-left {
+    max-height: none;
+    overflow-y: visible;
+  }
+  .admin-split-right {
+    min-height: 460px;
+  }
+}
+
 html.oryenza-dark .admin-detail-modal {
   background: #0d1e35;
   border-color: #244166;

@@ -211,6 +211,15 @@ exports.downloadResume = (req, res) => {
     }
 
     res.setHeader("X-Content-Type-Options", "nosniff");
+    const ext = path.extname(sanitizedFilename).toLowerCase();
+    const isInline = req.query.inline === "true" || req.query.view === "inline";
+
+    if (isInline && ext === ".pdf") {
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `inline; filename="${sanitizedFilename}"`);
+      return res.sendFile(filePath);
+    }
+
     return res.download(filePath, sanitizedFilename);
   } catch (err) {
     console.error("Error downloading resume:", err);

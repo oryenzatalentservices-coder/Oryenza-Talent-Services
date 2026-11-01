@@ -140,6 +140,64 @@ export default function AdminDashboard({ onExit }) {
   const [itemType, setItemType] = useState(null); // 'inquiry' | 'candidate'
   const [adminNotes, setAdminNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+  const [resumeBlobUrl, setResumeBlobUrl] = useState(null);
+  const [resumeLoading, setResumeLoading] = useState(false);
+  const [resumeError, setResumeError] = useState(null);
+
+  // Load candidate resume preview into blob URL when candidate detail modal opens
+  useEffect(() => {
+    if (!selectedItem || itemType !== "candidate" || !selectedItem.resume_path) {
+      if (resumeBlobUrl && resumeBlobUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(resumeBlobUrl);
+      }
+      setResumeBlobUrl(null);
+      setResumeLoading(false);
+      setResumeError(null);
+      return;
+    }
+
+    let active = true;
+    setResumeLoading(true);
+    setResumeError(null);
+
+    const filename = selectedItem.resume_path || "";
+    const isPdf = filename.toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      setResumeLoading(false);
+      setResumeError("In-browser preview is available for PDF files. Click Download to open this file.");
+      return;
+    }
+
+    const viewUrl = api.getResumeViewUrl(selectedItem.resume_path, adminKey);
+
+    fetch(viewUrl)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Resume preview not available (${res.status})`);
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        if (!active) return;
+        const objectUrl = URL.createObjectURL(blob);
+        setResumeBlobUrl(objectUrl);
+        setResumeLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        console.warn("Direct blob fetch failed, fallback to view URL:", err);
+        setResumeBlobUrl(viewUrl);
+        setResumeLoading(false);
+      });
+
+    return () => {
+      active = false;
+      if (resumeBlobUrl && resumeBlobUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(resumeBlobUrl);
+      }
+    };
+  }, [selectedItem?.id, selectedItem?.resume_path, itemType]);
 
   // Export dropdown menu state
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -1256,7 +1314,9 @@ export default function AdminDashboard({ onExit }) {
           onClick={() => setSelectedItem(null)}
         >
           <div
-            className="admin-detail-modal"
+            className={`admin-detail-modal ${
+              itemType === "candidate" ? "admin-candidate-split-modal" : ""
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="admin-detail-header">
@@ -1264,7 +1324,7 @@ export default function AdminDashboard({ onExit }) {
                 <h3 className="admin-detail-title">
                   {itemType === "inquiry"
                     ? "Client Inquiry Details"
-                    : "Candidate Profile & CV"}
+                    : "Candidate Dossier & Resume Review"}
                 </h3>
                 <span className="admin-detail-meta">
                   ID #{selectedItem.id} · Submitted{" "}
@@ -1275,66 +1335,115 @@ export default function AdminDashboard({ onExit }) {
                 type="button"
                 className="admin-icon-btn"
                 onClick={() => setSelectedItem(null)}
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {itemType === "inquiry" ? (
-                <>
+            {itemType === "inquiry" ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div className="admin-detail-row">
+                  <strong>Client Name:</strong> {selectedItem.name}
+                </div>
+                {selectedItem.company && (
                   <div className="admin-detail-row">
-                    <strong>Client Name:</strong> {selectedItem.name}
+                    <strong>Company:</strong> {selectedItem.company}
                   </div>
-                  {selectedItem.company && (
-                    <div className="admin-detail-row">
-                      <strong>Company:</strong> {selectedItem.company}
-                    </div>
-                  )}
-                  <div className="admin-detail-row">
-                    <strong>Requirement:</strong> {selectedItem.requirement}
-                  </div>
-                  <div className="admin-detail-row" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-                    <strong>Contact:</strong>{" "}
-                    <a href={`mailto:${selectedItem.email}`} style={{ color: "var(--blue)" }}>
-                      {selectedItem.email}
-                    </a>{" "}
-                    ·{" "}
-                    <a href={`tel:${selectedItem.phone}`} style={{ color: "var(--blue)" }}>
-                      {selectedItem.phone}
+                )}
+                <div className="admin-detail-row">
+                  <strong>Requirement:</strong> {selectedItem.requirement}
+                </div>
+                <div className="admin-detail-row" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                  <strong>Contact:</strong>{" "}
+                  <a href={`mailto:${selectedItem.email}`} style={{ color: "var(--blue)" }}>
+                    {selectedItem.email}
+                  </a>{" "}
+                  ·{" "}
+                  <a href={`tel:${selectedItem.phone}`} style={{ color: "var(--blue)" }}>
+                    {selectedItem.phone}
+                  </a>
+                  {getClientWhatsAppUrl(selectedItem) && (
+                    <a
+                      href={getClientWhatsAppUrl(selectedItem)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="admin-whatsapp-btn"
+                      style={{ marginLeft: "6px" }}
+                      title={`Chat on WhatsApp with ${selectedItem.name}`}
+                    >
+                      <WhatsAppIcon size={13} />
+                      <span>Chat on WhatsApp</span>
                     </a>
-                    {getClientWhatsAppUrl(selectedItem) && (
-                      <a
-                        href={getClientWhatsAppUrl(selectedItem)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="admin-whatsapp-btn"
-                        style={{ marginLeft: "6px" }}
-                        title={`Chat on WhatsApp with ${selectedItem.name}`}
-                      >
-                        <WhatsAppIcon size={13} />
-                        <span>Chat on WhatsApp</span>
-                      </a>
-                    )}
+                  )}
+                </div>
+                <div className="admin-detail-box">
+                  <strong>Message / Mandate Brief:</strong>
+                  <p>{selectedItem.message}</p>
+                </div>
+
+                {/* Internal Admin Notes */}
+                <div style={{ marginTop: "10px" }}>
+                  <label style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                    Internal Admin Notes (Private):
+                  </label>
+                  <textarea
+                    className="admin-notes-textarea"
+                    placeholder="Add private recruiter notes, interview scheduling notes, or client feedback here..."
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="admin-auth-btn"
+                    style={{ width: "auto", marginTop: "10px", padding: "8px 18px", fontSize: "0.85rem" }}
+                    onClick={handleSaveNotes}
+                    disabled={savingNotes}
+                  >
+                    {savingNotes ? "Saving Notes..." : "Save Notes"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Side-by-Side Split View for Candidates */
+              <div className="admin-split-layout">
+                {/* Left Column: Candidate Info & Recruiter Controls */}
+                <div className="admin-split-left">
+                  {/* Status Card with Instant Selector */}
+                  <div className="admin-detail-box" style={{ padding: "12px 16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                      <strong style={{ margin: 0, fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)" }}>
+                        Application Status
+                      </strong>
+                      <span className={`admin-status-badge status-${selectedItem.status}`}>
+                        {selectedItem.status.replace("_", " ")}
+                      </span>
+                    </div>
+                    <select
+                      className={`admin-status-select status-${selectedItem.status}`}
+                      style={{ width: "100%", padding: "8px 12px", fontSize: "0.88rem" }}
+                      value={selectedItem.status}
+                      onChange={(e) => handleCandidateStatusChange(selectedItem.id, e.target.value)}
+                    >
+                      <option value="applied">Applied</option>
+                      <option value="screening">Screening</option>
+                      <option value="interview">Interview</option>
+                      <option value="offered">Offered</option>
+                      <option value="placed">Placed</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
                   </div>
-                  <div className="admin-detail-box">
-                    <strong>Message / Mandate Brief:</strong>
-                    <p>{selectedItem.message}</p>
-                  </div>
-                </>
-              ) : (
-                <>
+
                   <div className="admin-detail-row">
                     <strong>Full Name:</strong> {selectedItem.name}
                   </div>
                   <div className="admin-detail-row">
-                    <strong>Current / Target Role:</strong>{" "}
-                    {selectedItem.current_role} ({selectedItem.experience_years} years)
+                    <strong>Target Role:</strong> {selectedItem.current_role} ({selectedItem.experience_years} years exp.)
                   </div>
                   <div className="admin-detail-row">
-                    <strong>Preferred Location:</strong>{" "}
-                    {selectedItem.preferred_location}
+                    <strong>Location:</strong> {selectedItem.preferred_location || "Not specified"}
                   </div>
+
                   <div className="admin-detail-row" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
                     <strong>Contact:</strong>{" "}
                     <a href={`mailto:${selectedItem.email}`} style={{ color: "var(--blue)" }}>
@@ -1350,14 +1459,15 @@ export default function AdminDashboard({ onExit }) {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="admin-whatsapp-btn"
-                        style={{ marginLeft: "6px" }}
+                        style={{ marginLeft: "4px" }}
                         title={`Chat on WhatsApp with ${selectedItem.name}`}
                       >
                         <WhatsAppIcon size={13} />
-                        <span>Chat on WhatsApp</span>
+                        <span>WhatsApp</span>
                       </a>
                     )}
                   </div>
+
                   {selectedItem.portfolio_url && (
                     <div className="admin-detail-row">
                       <strong>Portfolio / LinkedIn:</strong>{" "}
@@ -1371,52 +1481,116 @@ export default function AdminDashboard({ onExit }) {
                       </a>
                     </div>
                   )}
-                  <div className="admin-detail-box">
-                    <strong>Key Skills & Tech Stack:</strong>
-                    <p>{selectedItem.skills}</p>
-                  </div>
-                  {selectedItem.resume_path && (
-                    <div>
-                      <a
-                        href={api.getResumeDownloadUrl(
-                          selectedItem.resume_path,
-                          adminKey
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="admin-resume-btn"
-                        style={{ padding: "8px 16px" }}
-                      >
-                        <Download size={15} />
-                        <span>Download Resume File ({selectedItem.resume_original_name || "CV.pdf"})</span>
-                      </a>
-                    </div>
-                  )}
-                </>
-              )}
 
-              {/* Internal Admin Notes */}
-              <div style={{ marginTop: "10px" }}>
-                <label style={{ fontSize: "0.85rem", fontWeight: 700 }}>
-                  Internal Admin Notes (Private):
-                </label>
-                <textarea
-                  className="admin-notes-textarea"
-                  placeholder="Add private recruiter notes, interview scheduling notes, or candidate feedback here..."
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="admin-auth-btn"
-                  style={{ width: "auto", marginTop: "10px", padding: "8px 18px", fontSize: "0.85rem" }}
-                  onClick={handleSaveNotes}
-                  disabled={savingNotes}
-                >
-                  {savingNotes ? "Saving Notes..." : "Save Notes"}
-                </button>
+                  <div className="admin-detail-box">
+                    <strong>Key Skills & Technologies:</strong>
+                    <p style={{ marginTop: "4px" }}>{selectedItem.skills || "None specified"}</p>
+                  </div>
+
+                  {/* Internal Recruiter Notes */}
+                  <div>
+                    <label style={{ fontSize: "0.85rem", fontWeight: 700, display: "block", marginBottom: "6px" }}>
+                      Private Recruiter Evaluation Notes:
+                    </label>
+                    <textarea
+                      className="admin-notes-textarea"
+                      placeholder="Enter interview feedback, compensation expectations, technical review, or remarks..."
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="admin-auth-btn"
+                      style={{ width: "auto", marginTop: "8px", padding: "8px 18px", fontSize: "0.85rem" }}
+                      onClick={handleSaveNotes}
+                      disabled={savingNotes}
+                    >
+                      {savingNotes ? "Saving Notes..." : "Save Notes"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Column: In-Browser Resume / CV Previewer */}
+                <div className="admin-split-right">
+                  <div className="admin-resume-viewer-header">
+                    <div className="admin-resume-viewer-title" title={selectedItem.resume_original_name || "Candidate CV"}>
+                      <FileText size={16} />
+                      <span>{selectedItem.resume_original_name || "Candidate_CV.pdf"}</span>
+                    </div>
+                    <div className="admin-resume-viewer-actions">
+                      {selectedItem.resume_path && (
+                        <>
+                          <a
+                            href={api.getResumeDownloadUrl(selectedItem.resume_path, adminKey)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="admin-resume-viewer-btn"
+                            title="Open full PDF in new browser tab"
+                          >
+                            <ExternalLink size={13} />
+                            <span>New Tab</span>
+                          </a>
+                          <a
+                            href={api.getResumeDownloadUrl(selectedItem.resume_path, adminKey)}
+                            download
+                            className="admin-resume-viewer-btn"
+                            title="Download original CV file"
+                          >
+                            <Download size={13} />
+                            <span>Download</span>
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="admin-resume-viewer-body">
+                    {resumeLoading ? (
+                      <div className="admin-resume-loading-state">
+                        <div className="admin-resume-spinner" />
+                        <p style={{ margin: 0, fontWeight: 600 }}>Loading Candidate Resume Preview...</p>
+                        <span style={{ fontSize: "0.78rem", opacity: 0.7, marginTop: "4px" }}>
+                          Rendering document for in-browser review
+                        </span>
+                      </div>
+                    ) : resumeBlobUrl ? (
+                      <iframe
+                        src={resumeBlobUrl}
+                        title={`Resume Preview - ${selectedItem.name}`}
+                        className="admin-resume-iframe"
+                      />
+                    ) : resumeError ? (
+                      <div className="admin-resume-empty-state">
+                        <AlertCircle size={36} style={{ color: "#f59e0b", marginBottom: "12px" }} />
+                        <p style={{ margin: "0 0 8px 0", fontWeight: 600, color: "var(--ink)" }}>
+                          {resumeError}
+                        </p>
+                        {selectedItem.resume_path && (
+                          <a
+                            href={api.getResumeDownloadUrl(selectedItem.resume_path, adminKey)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="admin-resume-btn"
+                            style={{ marginTop: "12px" }}
+                          >
+                            <Download size={14} />
+                            <span>Download File Directly</span>
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="admin-resume-empty-state">
+                        <FileText size={36} style={{ opacity: 0.4, marginBottom: "12px" }} />
+                        <p style={{ margin: 0, fontWeight: 600 }}>No Resume File Uploaded</p>
+                        <span style={{ fontSize: "0.8rem", opacity: 0.7, marginTop: "4px" }}>
+                          This candidate submitted an application without an attached CV file.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

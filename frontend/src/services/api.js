@@ -295,5 +295,16 @@ export const api = {
         : "");
     return `${API_BASE}/candidates/resume/${encodeURIComponent(filename)}?admin_key=${encodeURIComponent(key)}`;
   },
+
+  getResumeViewUrl(filename, adminKey = null) {
+    const key =
+      adminKey ||
+      (typeof window !== "undefined"
+        ? window.sessionStorage?.getItem("oryenza_admin_key") ||
+          window.localStorage?.getItem("oryenza_admin_key") ||
+          ""
+        : "");
+    return `${API_BASE}/candidates/resume/${encodeURIComponent(filename)}?admin_key=${encodeURIComponent(key)}&inline=true`;
+  },
 };
 
