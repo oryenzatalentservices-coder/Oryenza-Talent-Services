@@ -3,19 +3,25 @@ import { Moon, Sun } from "lucide-react";
 
 export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem("oryenza_theme");
-    if (saved) return saved === "dark";
-    return true;
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("oryenza_theme_v2");
+      if (saved) return saved === "dark";
+      // First visit: always default to white (light) mode!
+      return false;
+    }
+    return false;
   });
 
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add("oryenza-dark");
       document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("oryenza_theme_v2", "dark");
       localStorage.setItem("oryenza_theme", "dark");
     } else {
       document.documentElement.classList.remove("oryenza-dark");
       document.documentElement.setAttribute("data-theme", "light");
+      localStorage.setItem("oryenza_theme_v2", "light");
       localStorage.setItem("oryenza_theme", "light");
     }
   }, [isDark]);

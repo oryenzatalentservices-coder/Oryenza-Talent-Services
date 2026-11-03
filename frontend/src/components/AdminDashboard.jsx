@@ -98,15 +98,26 @@ function getCandidateWhatsAppUrl(cand) {
 }
 
 export default function AdminDashboard({ onExit }) {
-  // Theme state synced with localStorage and documentElement
+  // Theme state synced with localStorage and documentElement (defaults to white/light mode)
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("oryenza_theme");
+      const saved = localStorage.getItem("oryenza_theme_v2");
       if (saved) return saved === "dark";
-      return document.documentElement.classList.contains("oryenza-dark");
+      // First visit: always default to white (light) mode!
+      return false;
     }
-    return true;
+    return false;
   });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("oryenza-dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.classList.remove("oryenza-dark");
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  }, [isDark]);
 
   const toggleTheme = () => {
     setIsDark((prev) => {
@@ -114,10 +125,12 @@ export default function AdminDashboard({ onExit }) {
       if (next) {
         document.documentElement.classList.add("oryenza-dark");
         document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("oryenza_theme_v2", "dark");
         localStorage.setItem("oryenza_theme", "dark");
       } else {
         document.documentElement.classList.remove("oryenza-dark");
         document.documentElement.setAttribute("data-theme", "light");
+        localStorage.setItem("oryenza_theme_v2", "light");
         localStorage.setItem("oryenza_theme", "light");
       }
       return next;

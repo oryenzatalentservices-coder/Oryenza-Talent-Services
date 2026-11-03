@@ -1,9 +1,28 @@
 <!doctype html>
-<html lang="en" class="oryenza-dark" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0b1f3a" />
+    <meta name="theme-color" content="#ffffff" />
+    
+    <!-- Theme Initializer (Defaults to White / Light Mode for all visitors) -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem("oryenza_theme_v2");
+          if (saved === "dark") {
+            document.documentElement.classList.add("oryenza-dark");
+            document.documentElement.setAttribute("data-theme", "dark");
+          } else {
+            document.documentElement.classList.remove("oryenza-dark");
+            document.documentElement.setAttribute("data-theme", "light");
+          }
+        } catch (e) {
+          document.documentElement.classList.remove("oryenza-dark");
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
     
     <!-- Security Meta Tags -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
