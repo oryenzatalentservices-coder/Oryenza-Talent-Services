@@ -1904,6 +1904,11 @@ textarea {
   border-color: #1877f2;
   background: #f0f6ff;
 }
+.social-btn.whatsapp-btn:hover {
+  color: #128c7e;
+  border-color: #25d366;
+  background: #f0fdf4;
+}
 
 /* Footer Social Icons ("last part logo type 3 icon") */
 .footer-social-row {
@@ -1945,6 +1950,9 @@ textarea {
 }
 .footer-social-icon.facebook:hover svg {
   box-shadow: 0 6px 20px rgba(24, 119, 242, 0.6);
+}
+.footer-social-icon.whatsapp:hover svg {
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
 }
 
 /* Footer */
@@ -2627,6 +2635,12 @@ html.oryenza-dark .social-btn.facebook-btn:hover {
   color: #60a5fa;
   border-color: #1877f2;
   background: #10233e;
+}
+
+html.oryenza-dark .social-btn.whatsapp-btn:hover {
+  color: #4ade80;
+  border-color: #25d366;
+  background: #0f2e22;
 }
 
 html.oryenza-dark .form-card h3 {
