@@ -3408,3 +3408,41 @@ html.oryenza-dark #oryenza-theme-toggle:hover {
   }
 }
 
+/* Contact Form WhatsApp Success Card */
+.contact-whatsapp-success-box {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: rgba(37, 211, 102, 0.08);
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  border-radius: 12px;
+  text-align: center;
+}
+
+html.oryenza-dark .contact-whatsapp-success-box {
+  background: rgba(37, 211, 102, 0.1);
+  border-color: rgba(37, 211, 102, 0.25);
+}
+
+.contact-whatsapp-success-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #25d366;
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+  transition: all 0.2s ease;
+}
+
+.contact-whatsapp-success-btn:hover {
+  transform: translateY(-2px);
+  background: #128c7e;
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+  color: #ffffff !important;
+}
+

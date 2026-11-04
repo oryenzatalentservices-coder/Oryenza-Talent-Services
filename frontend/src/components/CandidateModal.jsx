@@ -1,6 +1,30 @@
 import React, { useState } from "react";
 import { api } from "../services/api";
-import { X, Upload, CheckCircle2, AlertCircle, FileText } from "lucide-react";
+import {
+  X,
+  Upload,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  ArrowUpRight,
+  Sparkles,
+} from "lucide-react";
+
+// WhatsApp SVG Icon Component
+function WhatsAppIcon({ size = 18, className = "" }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      style={{ display: "inline-block", verticalAlign: "middle" }}
+    >
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.889-9.885 9.889m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  );
+}
 
 export default function CandidateModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
@@ -125,19 +149,16 @@ export default function CandidateModal({ isOpen, onClose }) {
         res.message ||
           "Application submitted successfully! Our talent team will review your profile.",
       );
-      setTimeout(() => {
-        // Reset after success
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          current_role: "",
-          experience_years: "",
-          preferred_location: "",
-          skills: "",
-        });
-        setResumeFile(null);
-      }, 3000);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        current_role: "",
+        experience_years: "",
+        preferred_location: "",
+        skills: "",
+      });
+      setResumeFile(null);
     } catch (err) {
       console.error("Candidate submission error:", err);
       setStatusType("error");
@@ -150,10 +171,16 @@ export default function CandidateModal({ isOpen, onClose }) {
     }
   };
 
+  const handleClose = () => {
+    setStatusType("");
+    setStatusMessage(null);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={handleClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
@@ -165,7 +192,7 @@ export default function CandidateModal({ isOpen, onClose }) {
           <button
             className="modal-close-btn"
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close modal"
           >
             <X size={18} />
@@ -173,7 +200,77 @@ export default function CandidateModal({ isOpen, onClose }) {
         </div>
 
         <div className="modal-body">
-          <form onSubmit={handleSubmit}>
+          {statusType === "success" ? (
+            <div className="candidate-success-view">
+              <div className="candidate-success-icon-wrap">
+                <CheckCircle2 size={44} />
+              </div>
+              <h3 className="candidate-success-title">Application Submitted!</h3>
+              <p className="candidate-success-desc">
+                {statusMessage ||
+                  "Your profile and resume have been securely received. Our talent consultants will review your qualifications."}
+              </p>
+
+              {/* Dedicated WhatsApp Community Invitation Card */}
+              <div className="candidate-whatsapp-invite-box">
+                <div className="candidate-whatsapp-header">
+                  <span className="candidate-whatsapp-pill">
+                    <WhatsAppIcon size={14} /> WhatsApp Community
+                  </span>
+                  <span className="candidate-whatsapp-sparkle">
+                    <Sparkles size={12} /> Priority Job Alerts
+                  </span>
+                </div>
+                <h4 className="candidate-whatsapp-headline">
+                  Join Our WhatsApp Community for Direct Job Alerts
+                </h4>
+                <p className="candidate-whatsapp-text">
+                  Stay updated with exclusive openings, priority recruiter screenings, and walk-in hiring drives before they are posted anywhere else!
+                </p>
+                <a
+                  href="https://chat.whatsapp.com/LWswD7SeIf22btGoNETsLw"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="candidate-whatsapp-join-btn"
+                >
+                  <WhatsAppIcon size={20} />
+                  <span>Join WhatsApp Community Now</span>
+                  <ArrowUpRight size={18} />
+                </a>
+              </div>
+
+              <div className="candidate-success-actions">
+                <button
+                  type="button"
+                  className="btn candidate-reset-btn"
+                  onClick={() => {
+                    setStatusType("");
+                    setStatusMessage(null);
+                    setFormData({
+                      name: "",
+                      email: "",
+                      phone: "",
+                      current_role: "",
+                      experience_years: "",
+                      preferred_location: "",
+                      skills: "",
+                    });
+                    setResumeFile(null);
+                  }}
+                >
+                  Submit Another Profile
+                </button>
+                <button
+                  type="button"
+                  className="btn candidate-close-btn"
+                  onClick={handleClose}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit}>
             <label>
               Full name *
               <input
@@ -336,6 +433,7 @@ export default function CandidateModal({ isOpen, onClose }) {
               )}
             </div>
           </form>
+          )}
         </div>
       </div>
     </div>
