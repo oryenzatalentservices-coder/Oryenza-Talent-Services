@@ -343,30 +343,9 @@ export default function AdminDashboard({ onExit }) {
     setIsAuthenticated(false);
   };
 
-  // Helper checks to filter out legacy mock/dummy data
-  const isMockCandidate = (c) => {
-    if (!c) return true;
-    const name = (c.name || "").toLowerCase().trim();
-    const email = (c.email || "").toLowerCase().trim();
-    return (
-      name === "harshil desai" ||
-      name === "anand verma" ||
-      email.includes("harshil@example") ||
-      email.includes("anand.verma@gmail")
-    );
-  };
-
-  const isMockInquiry = (i) => {
-    if (!i) return true;
-    const name = (i.name || "").toLowerCase().trim();
-    const email = (i.email || "").toLowerCase().trim();
-    return (
-      name === "rajesh sharma" ||
-      name === "meera patel" ||
-      email.includes("rajesh@techcorp") ||
-      email.includes("meera@startupx")
-    );
-  };
+  // Keep all entries intact - never automatically filter out or remove any candidate or inquiry
+  const isMockCandidate = () => false;
+  const isMockInquiry = () => false;
 
   const loadAllData = async (key = adminKey) => {
     setDataLoading(true);
@@ -392,39 +371,41 @@ export default function AdminDashboard({ onExit }) {
         );
       } catch (_) {}
 
-      // Merge & deduplicate true inquiries (preferring backend version if ID matches)
-      const remoteInquiries = (inqRes.data || []).filter((i) => !isMockInquiry(i));
+      // Merge & deduplicate true inquiries (preserving every single submitted entry)
+      const remoteInquiries = inqRes.data || [];
       const inqMap = new Map();
-      // Add local true entries first
-      localInquiries.filter((i) => !isMockInquiry(i)).forEach((item) => {
-        const key = item.id ? String(item.id) : (item.email || "") + "_" + (item.created_at || "");
-        inqMap.set(key, item);
+      localInquiries.forEach((item) => {
+        if (!item) return;
+        const mapKey = item.id ? `id_${item.id}` : `local_${item.email || ""}_${item.created_at || ""}_${item.name || ""}`;
+        inqMap.set(mapKey, item);
       });
-      // Merge remote entries (overwriting local with synced server data)
       remoteInquiries.forEach((item) => {
-        const key = item.id ? String(item.id) : (item.email || "") + "_" + (item.created_at || "");
-        inqMap.set(key, item);
+        if (!item) return;
+        const mapKey = item.id ? `id_${item.id}` : `remote_${item.email || ""}_${item.created_at || ""}_${item.name || ""}`;
+        inqMap.set(mapKey, item);
       });
       const mergedInquiries = Array.from(inqMap.values()).sort(
         (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
       );
 
-      // Merge & deduplicate true candidates
-      const remoteCandidates = (candRes.data || []).filter((c) => !isMockCandidate(c));
+      // Merge & deduplicate true candidates (preserving every single candidate profile)
+      const remoteCandidates = candRes.data || [];
       const candMap = new Map();
-      localCandidates.filter((c) => !isMockCandidate(c)).forEach((item) => {
-        const key = item.id ? String(item.id) : (item.email || "") + "_" + (item.created_at || "");
-        candMap.set(key, item);
+      localCandidates.forEach((item) => {
+        if (!item) return;
+        const mapKey = item.id ? `id_${item.id}` : `local_${item.email || ""}_${item.created_at || ""}_${item.name || ""}`;
+        candMap.set(mapKey, item);
       });
       remoteCandidates.forEach((item) => {
-        const key = item.id ? String(item.id) : (item.email || "") + "_" + (item.created_at || "");
-        candMap.set(key, item);
+        if (!item) return;
+        const mapKey = item.id ? `id_${item.id}` : `remote_${item.email || ""}_${item.created_at || ""}_${item.name || ""}`;
+        candMap.set(mapKey, item);
       });
       const mergedCandidates = Array.from(candMap.values()).sort(
         (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
       );
 
-      // Hold true entries in state and keep localStorage synced
+      // Hold all entries in state and keep localStorage synced without truncating
       setInquiries(mergedInquiries);
       setCandidates(mergedCandidates);
       setStats(statRes.data || null);
@@ -432,11 +413,11 @@ export default function AdminDashboard({ onExit }) {
       try {
         localStorage.setItem(
           "oryenza_true_inquiries",
-          JSON.stringify(mergedInquiries.slice(0, 200))
+          JSON.stringify(mergedInquiries)
         );
         localStorage.setItem(
           "oryenza_true_candidates",
-          JSON.stringify(mergedCandidates.slice(0, 200))
+          JSON.stringify(mergedCandidates)
         );
       } catch (_) {}
     } catch (err) {
@@ -1313,17 +1294,19 @@ export default function AdminDashboard({ onExit }) {
                     </tr>
                   ) : (
                     filteredInquiries.map((inq) => (
-                      <tr key={inq.id}>
+                      <tr key={inq.id || inq.email || Math.random()}>
                         <td style={{ whiteSpace: "nowrap", color: "var(--muted)" }}>
-                          {new Date(inq.created_at).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {inq.created_at && !isNaN(new Date(inq.created_at).getTime())
+                            ? new Date(inq.created_at).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : "Recent"}
                         </td>
                         <td>
                           <div style={{ fontWeight: 700, color: "var(--navy)" }}>
-                            {inq.name}
+                            {inq.name || "Client"}
                           </div>
                           {inq.company && (
                             <div style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
@@ -1339,13 +1322,15 @@ export default function AdminDashboard({ onExit }) {
                               marginTop: "4px",
                             }}
                           >
-                            <a
-                              href={`mailto:${inq.email}`}
-                              style={{ color: "var(--blue)" }}
-                              title="Email client"
-                            >
-                              ✉ {inq.email}
-                            </a>
+                            {inq.email && (
+                              <a
+                                href={`mailto:${inq.email}`}
+                                style={{ color: "var(--blue)" }}
+                                title="Email client"
+                              >
+                                ✉ {inq.email}
+                              </a>
+                            )}
                             {inq.phone && (
                               <div
                                 style={{
@@ -1390,21 +1375,25 @@ export default function AdminDashboard({ onExit }) {
                               fontSize: "0.8rem",
                             }}
                           >
-                            {inq.requirement}
+                            {inq.requirement || "Hiring Requirement"}
                           </span>
                         </td>
-                        <td style={{ maxWidth: "260px" }}>
+                        <td style={{ maxWidth: "280px" }}>
                           <p
                             style={{
                               margin: 0,
                               fontSize: "0.84rem",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
+                              whiteSpace: "normal",
+                              lineHeight: "1.45",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
                             }}
                             title={inq.message}
                           >
-                            {inq.message}
+                            {inq.message || "No message specified."}
                           </p>
                         </td>
                         <td>
@@ -1481,17 +1470,19 @@ export default function AdminDashboard({ onExit }) {
                     </tr>
                   ) : (
                     filteredCandidates.map((cand) => (
-                      <tr key={cand.id}>
+                      <tr key={cand.id || cand.email || Math.random()}>
                         <td style={{ whiteSpace: "nowrap", color: "var(--muted)" }}>
-                          {new Date(cand.created_at).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {cand.created_at && !isNaN(new Date(cand.created_at).getTime())
+                            ? new Date(cand.created_at).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : "Recent"}
                         </td>
                         <td>
                           <div style={{ fontWeight: 700, color: "var(--navy)" }}>
-                            {cand.name}
+                            {cand.name || "Candidate"}
                           </div>
                           {cand.preferred_location && (
                             <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
@@ -1500,19 +1491,23 @@ export default function AdminDashboard({ onExit }) {
                           )}
                         </td>
                         <td>
-                          <div style={{ fontWeight: 600 }}>{cand.current_role}</div>
+                          <div style={{ fontWeight: 600 }}>{cand.current_role || "Role Not Specified"}</div>
                           <div style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                            {cand.experience_years} yrs experience
+                            {cand.experience_years !== undefined && cand.experience_years !== null
+                              ? `${cand.experience_years} yrs exp`
+                              : "Not specified"}
                           </div>
                         </td>
                         <td>
                           <div style={{ fontSize: "0.82rem" }}>
-                            <a
-                              href={`mailto:${cand.email}`}
-                              style={{ color: "var(--blue)" }}
-                            >
-                              ✉ {cand.email}
-                            </a>
+                            {cand.email && (
+                              <a
+                                href={`mailto:${cand.email}`}
+                                style={{ color: "var(--blue)" }}
+                              >
+                                ✉ {cand.email}
+                              </a>
+                            )}
                             {cand.phone && (
                               <div
                                 style={{
@@ -1555,6 +1550,16 @@ export default function AdminDashboard({ onExit }) {
                               )}
                               target="_blank"
                               rel="noopener noreferrer"
+                              className="admin-resume-btn"
+                              title="Download candidate resume"
+                            >
+                              <Download size={13} />
+                              <span>Resume (.pdf)</span>
+                            </a>
+                          ) : cand.resume_data_url || cand.resume_data ? (
+                            <a
+                              href={cand.resume_data_url || `data:application/pdf;base64,${cand.resume_data}`}
+                              download={`${(cand.name || "candidate").replace(/\s+/g, "_")}_resume.pdf`}
                               className="admin-resume-btn"
                               title="Download candidate resume"
                             >

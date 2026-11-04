@@ -122,13 +122,13 @@ export default function CandidateModal({ isOpen, onClose }) {
             const currentList = JSON.parse(
               localStorage.getItem("oryenza_true_candidates") || "[]"
             );
-            const filtered = currentList.filter(
-              (c) => c.id !== trueCandidate.id && c.email !== trueCandidate.email
-            );
-            filtered.unshift(trueCandidate);
+            const exists = currentList.some((c) => c.id === trueCandidate.id);
+            if (!exists) {
+              currentList.unshift(trueCandidate);
+            }
             localStorage.setItem(
               "oryenza_true_candidates",
-              JSON.stringify(filtered.slice(0, 50))
+              JSON.stringify(currentList)
             );
           } catch (_) {}
         };

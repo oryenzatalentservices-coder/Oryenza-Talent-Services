@@ -92,6 +92,9 @@ app.use(
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 
+// Security & Reverse Proxy: Trust proxy header from Nginx/Docker/Render
+app.set("trust proxy", 1);
+
 // Security: Global API Rate Limiting & Input Sanitization
 app.use("/api", apiLimiter);
 app.use("/api", sanitizeInputs);

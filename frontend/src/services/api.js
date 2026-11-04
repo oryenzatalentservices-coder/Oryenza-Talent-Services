@@ -1,14 +1,6 @@
 // API Service for Oryenza Talent Services Client
-const isLocal =
-  typeof window !== "undefined" &&
-  (window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1");
-
 const rawApiBase =
-  import.meta.env.VITE_API_BASE_URL ||
-  (isLocal
-    ? "/api"
-    : "https://oryenza-talent-services.onrender.com/api");
+  import.meta.env.VITE_API_BASE_URL || "/api";
 const API_BASE = rawApiBase.replace(/\/+$/, "");
 
 function getAdminHeaders(customKey) {

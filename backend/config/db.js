@@ -71,151 +71,221 @@ function saveLocalDb(data) {
 }
 
 /**
- * Attempt to connect to MySQL and bootstrap database & tables
+ * Attempt to connect to MySQL and bootstrap database & tables with retry logic
  */
-async function initDb() {
-  console.log(
-    `[Database] Attempting connection to MySQL server at ${DB_HOST}:${DB_PORT} as user '${DB_USER}'...`,
-  );
-
-  try {
-    // 1. Connect without database first to ensure DB exists
-    const rootConn = await mysql.createConnection({
-      host: DB_HOST,
-      user: DB_USER,
-      password: DB_PASSWORD,
-      port: DB_PORT,
-    });
-
+async function initDb(retries = 10, delay = 2500) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
     console.log(
-      `[Database] Connected to MySQL server. Ensuring database '${DB_NAME}' exists...`,
+      `[Database] Attempting connection to MySQL server at ${DB_HOST}:${DB_PORT} as user '${DB_USER}' (attempt ${attempt}/${retries})...`,
     );
-    await rootConn.query(
-      `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`,
-    );
-    await rootConn.end();
 
-    // 2. Create the main application connection pool
-    pool = mysql.createPool({
-      host: DB_HOST,
-      user: DB_USER,
-      password: DB_PASSWORD,
-      database: DB_NAME,
-      port: DB_PORT,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-    });
-
-    // 3. Create tables if they do not exist
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS inquiries (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(150) NOT NULL,
-        email VARCHAR(150) NOT NULL,
-        company VARCHAR(150) DEFAULT NULL,
-        phone VARCHAR(50) DEFAULT NULL,
-        requirement VARCHAR(100) NOT NULL,
-        message TEXT NOT NULL,
-        status ENUM('new', 'in_progress', 'contacted', 'closed') DEFAULT 'new',
-        admin_notes TEXT DEFAULT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX idx_status (status),
-        INDEX idx_created (created_at DESC)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    `);
-
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS candidates (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(150) NOT NULL,
-        email VARCHAR(150) NOT NULL,
-        phone VARCHAR(50) NOT NULL,
-        current_role VARCHAR(150) DEFAULT NULL,
-        experience_years DECIMAL(4, 1) DEFAULT 0.0,
-        preferred_location VARCHAR(100) DEFAULT NULL,
-        skills TEXT DEFAULT NULL,
-        resume_path VARCHAR(255) DEFAULT NULL,
-        resume_original_name VARCHAR(255) DEFAULT NULL,
-        resume_data LONGTEXT DEFAULT NULL,
-        portfolio_url VARCHAR(255) DEFAULT NULL,
-        status ENUM('applied', 'screening', 'interview', 'offered', 'placed', 'rejected') DEFAULT 'applied',
-        admin_notes TEXT DEFAULT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX idx_candidate_status (status),
-        INDEX idx_candidate_created (created_at DESC)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    `);
-
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS site_stats (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        metric_key VARCHAR(50) UNIQUE NOT NULL,
-        metric_value INT NOT NULL,
-        label VARCHAR(100) NOT NULL,
-        suffix VARCHAR(10) DEFAULT '+',
-        display_order INT DEFAULT 0,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    `);
-
-    // Auto-migration: ensure resume_data column exists in candidates table
     try {
+      // 1. Connect without database first to ensure DB exists
+      const rootConn = await mysql.createConnection({
+        host: DB_HOST,
+        user: DB_USER,
+        password: DB_PASSWORD,
+        port: DB_PORT,
+        connectTimeout: 8000,
+      });
+
+      console.log(
+        `[Database] Connected to MySQL server. Ensuring database '${DB_NAME}' exists...`,
+      );
+      await rootConn.query(
+        `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`,
+      );
+      await rootConn.end();
+
+      // 2. Create the main application connection pool
+      pool = mysql.createPool({
+        host: DB_HOST,
+        user: DB_USER,
+        password: DB_PASSWORD,
+        database: DB_NAME,
+        port: DB_PORT,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+      });
+
+      // 3. Create tables if they do not exist
       await pool.query(`
-        ALTER TABLE candidates ADD COLUMN resume_data LONGTEXT DEFAULT NULL;
+        CREATE TABLE IF NOT EXISTS inquiries (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(150) NOT NULL,
+          email VARCHAR(150) NOT NULL,
+          company VARCHAR(150) DEFAULT NULL,
+          phone VARCHAR(50) DEFAULT NULL,
+          requirement VARCHAR(100) NOT NULL,
+          message TEXT NOT NULL,
+          status ENUM('new', 'in_progress', 'contacted', 'closed') DEFAULT 'new',
+          admin_notes TEXT DEFAULT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          INDEX idx_status (status),
+          INDEX idx_created (created_at DESC)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
-      console.log("[Database] Migration: Added resume_data column to candidates table.");
-    } catch (_) {
-      // Column already exists or error ignored
-    }
 
-    // 4. Seed default stats if table is empty
-    const [statsRows] = await pool.query(
-      "SELECT COUNT(*) as count FROM site_stats",
-    );
-    if (statsRows[0].count === 0) {
       await pool.query(`
-        INSERT INTO site_stats (metric_key, metric_value, label, suffix, display_order)
-        VALUES 
-          ('happy_clients', 25, 'Happy clients', '+', 1),
-          ('industries_served', 15, 'Industries served', '+', 2),
-          ('successful_placements', 250, 'Successful placements', '+', 3),
-          ('retention_rate', 96, '1-Year retention rate', '%', 4);
+        CREATE TABLE IF NOT EXISTS candidates (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(150) NOT NULL,
+          email VARCHAR(150) NOT NULL,
+          phone VARCHAR(50) NOT NULL,
+          current_role VARCHAR(150) DEFAULT NULL,
+          experience_years DECIMAL(4, 1) DEFAULT 0.0,
+          preferred_location VARCHAR(100) DEFAULT NULL,
+          skills TEXT DEFAULT NULL,
+          resume_path VARCHAR(255) DEFAULT NULL,
+          resume_original_name VARCHAR(255) DEFAULT NULL,
+          resume_data LONGTEXT DEFAULT NULL,
+          portfolio_url VARCHAR(255) DEFAULT NULL,
+          status ENUM('applied', 'screening', 'interview', 'offered', 'placed', 'rejected') DEFAULT 'applied',
+          admin_notes TEXT DEFAULT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          INDEX idx_candidate_status (status),
+          INDEX idx_candidate_created (created_at DESC)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
-      console.log("[Database] Seeded initial stats into MySQL.");
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS site_stats (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          metric_key VARCHAR(50) UNIQUE NOT NULL,
+          metric_value INT NOT NULL,
+          label VARCHAR(100) NOT NULL,
+          suffix VARCHAR(10) DEFAULT '+',
+          display_order INT DEFAULT 0,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      // Auto-migration: ensure resume_data column exists in candidates table
+      try {
+        await pool.query(`
+          ALTER TABLE candidates ADD COLUMN resume_data LONGTEXT DEFAULT NULL;
+        `);
+      } catch (_) {}
+
+      // 4. Seed default stats if table is empty
+      const [statsRows] = await pool.query(
+        "SELECT COUNT(*) as count FROM site_stats",
+      );
+      if (statsRows[0].count === 0) {
+        await pool.query(`
+          INSERT INTO site_stats (metric_key, metric_value, label, suffix, display_order)
+          VALUES 
+            ('happy_clients', 25, 'Happy clients', '+', 1),
+            ('industries_served', 15, 'Industries served', '+', 2),
+            ('successful_placements', 250, 'Successful placements', '+', 3),
+            ('retention_rate', 96, '1-Year retention rate', '%', 4);
+        `);
+        console.log("[Database] Seeded initial stats into MySQL.");
+      }
+
+      // 5. Automatic migration: Sync any local fallback entries to MySQL
+      try {
+        const local = getLocalDb();
+        if (local.inquiries && local.inquiries.length > 0) {
+          for (const inq of local.inquiries) {
+            const [existing] = await pool.query(
+              "SELECT id FROM inquiries WHERE email = ? AND message = ? LIMIT 1",
+              [inq.email, inq.message]
+            );
+            if (existing.length === 0) {
+              await pool.query(
+                `INSERT INTO inquiries (name, email, company, phone, requirement, message, status, admin_notes, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  inq.name,
+                  inq.email,
+                  inq.company || null,
+                  inq.phone || null,
+                  inq.requirement || "Other enquiry",
+                  inq.message,
+                  inq.status || "new",
+                  inq.admin_notes || null,
+                  inq.created_at || new Date(),
+                ]
+              );
+            }
+          }
+        }
+
+        if (local.candidates && local.candidates.length > 0) {
+          for (const cand of local.candidates) {
+            const [existing] = await pool.query(
+              "SELECT id FROM candidates WHERE email = ? AND phone = ? LIMIT 1",
+              [cand.email, cand.phone]
+            );
+            if (existing.length === 0) {
+              await pool.query(
+                `INSERT INTO candidates (name, email, phone, current_role, experience_years, preferred_location, skills, resume_path, resume_original_name, resume_data, portfolio_url, status, admin_notes, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  cand.name,
+                  cand.email,
+                  cand.phone,
+                  cand.current_role || null,
+                  cand.experience_years ? parseFloat(cand.experience_years) : 0,
+                  cand.preferred_location || null,
+                  cand.skills || null,
+                  cand.resume_path || null,
+                  cand.resume_original_name || null,
+                  cand.resume_data || null,
+                  cand.portfolio_url || null,
+                  cand.status || "applied",
+                  cand.admin_notes || null,
+                  cand.created_at || new Date(),
+                ]
+              );
+            }
+          }
+        }
+      } catch (syncErr) {
+        console.warn("[Database] Notice syncing local fallback entries:", syncErr.message);
+      }
+
+      isMysqlActive = true;
+      dbErrorDetails = null;
+      console.log(
+        `[Database] SUCCESS: Connected to MySQL database '${DB_NAME}' successfully!`,
+      );
+      return { success: true, mode: "mysql" };
+    } catch (err) {
+      if (attempt < retries) {
+        console.warn(
+          `[Database] Connection attempt ${attempt}/${retries} failed (${err.message}). Retrying in ${delay / 1000}s...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        isMysqlActive = false;
+        dbErrorDetails = err.message;
+        console.warn(`\n======================================================`);
+        console.warn(`[MySQL Connection Notice]`);
+        console.warn(
+          `Unable to connect to MySQL after ${retries} attempts (${err.code || "ERR"}: ${err.message}).`,
+        );
+        console.warn(
+          `Check your credentials in server/.env (DB_PASSWORD / DB_USER).`,
+        );
+        console.warn(`>>> Resilient Fallback Mode is ACTIVE <<<`);
+        console.warn(
+          `All inquiries, candidates, and stats will automatically persist`,
+        );
+        console.warn(
+          `in server/data/local_db.json without any disruption to the app.`,
+        );
+        console.warn(`======================================================\n`);
+
+        // Ensure local DB exists
+        getLocalDb();
+        return { success: false, mode: "local_fallback", error: err.message };
+      }
     }
-
-    isMysqlActive = true;
-    dbErrorDetails = null;
-    console.log(
-      `[Database] SUCCESS: Connected to MySQL database '${DB_NAME}' successfully!`,
-    );
-    return { success: true, mode: "mysql" };
-  } catch (err) {
-    isMysqlActive = false;
-    dbErrorDetails = err.message;
-    console.warn(`\n======================================================`);
-    console.warn(`[MySQL Connection Notice]`);
-    console.warn(
-      `Unable to connect to MySQL (${err.code || "ERR"}: ${err.message}).`,
-    );
-    console.warn(
-      `Check your credentials in server/.env (DB_PASSWORD / DB_USER).`,
-    );
-    console.warn(`>>> Resilient Fallback Mode is ACTIVE <<<`);
-    console.warn(
-      `All inquiries, candidates, and stats will automatically persist`,
-    );
-    console.warn(
-      `in server/data/local_db.json without any disruption to the app.`,
-    );
-    console.warn(`======================================================\n`);
-
-    // Ensure local DB exists
-    getLocalDb();
-    return { success: false, mode: "local_fallback", error: err.message };
   }
 }
 

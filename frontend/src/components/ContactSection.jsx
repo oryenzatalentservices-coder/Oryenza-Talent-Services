@@ -47,10 +47,13 @@ export default function ContactSection({
         const currentList = JSON.parse(
           localStorage.getItem("oryenza_true_inquiries") || "[]"
         );
-        currentList.unshift(saved);
+        const exists = currentList.some((i) => i.id === saved.id);
+        if (!exists) {
+          currentList.unshift(saved);
+        }
         localStorage.setItem(
           "oryenza_true_inquiries",
-          JSON.stringify(currentList.slice(0, 100))
+          JSON.stringify(currentList)
         );
       } catch (_) {}
       setStatusType("success");

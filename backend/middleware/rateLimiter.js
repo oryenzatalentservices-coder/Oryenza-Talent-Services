@@ -20,7 +20,7 @@ const apiLimiter = rateLimit({
 // 2. Strict Submission Limiter (for POST /api/inquiries and POST /api/candidates)
 const submissionLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15, // Allow max 15 submissions per 15 mins per IP (prevents spam flooding)
+  max: 60, // Allow up to 60 submissions per 15 mins per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: {
