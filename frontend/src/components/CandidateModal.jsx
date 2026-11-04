@@ -7,7 +7,6 @@ import {
   AlertCircle,
   FileText,
   ArrowUpRight,
-  Sparkles,
 } from "lucide-react";
 
 // WhatsApp SVG Icon Component
@@ -215,10 +214,7 @@ export default function CandidateModal({ isOpen, onClose }) {
               <div className="candidate-whatsapp-invite-box">
                 <div className="candidate-whatsapp-header">
                   <span className="candidate-whatsapp-pill">
-                    <WhatsAppIcon size={14} /> WhatsApp Community
-                  </span>
-                  <span className="candidate-whatsapp-sparkle">
-                    <Sparkles size={12} /> Priority Job Alerts
+                    <WhatsAppIcon size={14} /> WhatsApp Community • Priority Job Alerts
                   </span>
                 </div>
                 <h4 className="candidate-whatsapp-headline">
