@@ -227,18 +227,14 @@ exports.downloadResume = async (req, res) => {
     // Self-healing: if file is not on disk (or filename was original_name), recover from database!
     if (!fileBuffer) {
       try {
-        const candidates = await db.getCandidates({});
         const candidateIdQuery = req.query.candidate_id || req.query.id;
-        const matched = candidates.find(
-          (c) =>
-            (candidateIdQuery && String(c.id) === String(candidateIdQuery)) ||
-            c.resume_path === sanitizedFilename ||
-            c.resume_original_name === sanitizedFilename ||
-            (c.resume_path && path.basename(c.resume_path) === sanitizedFilename) ||
-            (c.resume_original_name &&
-              path.basename(c.resume_original_name).toLowerCase() ===
-                sanitizedFilename.toLowerCase())
-        );
+        let matched = null;
+        if (candidateIdQuery) {
+          matched = await db.getCandidateById(candidateIdQuery);
+        }
+        if (!matched) {
+          matched = await db.getCandidateByFilename(sanitizedFilename);
+        }
 
         if (matched) {
           if (matched.resume_original_name) {

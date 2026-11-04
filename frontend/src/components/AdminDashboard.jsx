@@ -415,11 +415,17 @@ export default function AdminDashboard({ onExit }) {
           "oryenza_true_inquiries",
           JSON.stringify(mergedInquiries)
         );
+        // Strip heavy base64 file blobs before persisting to localStorage to avoid QuotaExceededError
+        const cleanCandidatesForStorage = mergedCandidates.map(
+          ({ resume_data, resume_data_url, ...rest }) => rest
+        );
         localStorage.setItem(
           "oryenza_true_candidates",
-          JSON.stringify(mergedCandidates)
+          JSON.stringify(cleanCandidatesForStorage)
         );
-      } catch (_) {}
+      } catch (storageErr) {
+        console.warn("Storage sync notice:", storageErr);
+      }
     } catch (err) {
       console.error("Data load error:", err);
       setDataError("Failed to fetch records: " + err.message);
@@ -574,37 +580,57 @@ export default function AdminDashboard({ onExit }) {
     }
   };
 
-  // Filtered queries
+  // Filtered queries (null-safe string matching to prevent runtime crashes)
   const filteredInquiries = useMemo(() => {
     return inquiries.filter((item) => {
+      if (!item) return false;
       const matchesStatus =
         statusFilter === "all" || item.status === statusFilter;
-      const term = searchTerm.toLowerCase();
+      const term = (searchTerm || "").trim().toLowerCase();
+      if (!term) return matchesStatus;
+
+      const name = (item.name || "").toLowerCase();
+      const company = (item.company || "").toLowerCase();
+      const email = (item.email || "").toLowerCase();
+      const phone = (item.phone || "").toLowerCase();
+      const requirement = (item.requirement || "").toLowerCase();
+      const message = (item.message || "").toLowerCase();
+
       const matchesSearch =
-        !term ||
-        item.name?.toLowerCase().includes(term) ||
-        item.company?.toLowerCase().includes(term) ||
-        item.email?.toLowerCase().includes(term) ||
-        item.phone?.toLowerCase().includes(term) ||
-        item.requirement?.toLowerCase().includes(term) ||
-        item.message?.toLowerCase().includes(term);
+        name.includes(term) ||
+        company.includes(term) ||
+        email.includes(term) ||
+        phone.includes(term) ||
+        requirement.includes(term) ||
+        message.includes(term);
+
       return matchesStatus && matchesSearch;
     });
   }, [inquiries, statusFilter, searchTerm]);
 
   const filteredCandidates = useMemo(() => {
     return candidates.filter((item) => {
+      if (!item) return false;
       const matchesStatus =
         statusFilter === "all" || item.status === statusFilter;
-      const term = searchTerm.toLowerCase();
+      const term = (searchTerm || "").trim().toLowerCase();
+      if (!term) return matchesStatus;
+
+      const name = (item.name || "").toLowerCase();
+      const role = (item.current_role || "").toLowerCase();
+      const email = (item.email || "").toLowerCase();
+      const phone = (item.phone || "").toLowerCase();
+      const skills = (item.skills || "").toLowerCase();
+      const location = (item.preferred_location || "").toLowerCase();
+
       const matchesSearch =
-        !term ||
-        item.name?.toLowerCase().includes(term) ||
-        item.current_role?.toLowerCase().includes(term) ||
-        item.email?.toLowerCase().includes(term) ||
-        item.phone?.toLowerCase().includes(term) ||
-        item.skills?.toLowerCase().includes(term) ||
-        item.preferred_location?.toLowerCase().includes(term);
+        name.includes(term) ||
+        role.includes(term) ||
+        email.includes(term) ||
+        phone.includes(term) ||
+        skills.includes(term) ||
+        location.includes(term);
+
       return matchesStatus && matchesSearch;
     });
   }, [candidates, statusFilter, searchTerm]);
@@ -1068,6 +1094,7 @@ export default function AdminDashboard({ onExit }) {
               onClick={() => {
                 setActiveTab("inquiries");
                 setStatusFilter("all");
+                setSearchTerm("");
               }}
             >
               <Briefcase size={16} />
@@ -1083,6 +1110,7 @@ export default function AdminDashboard({ onExit }) {
               onClick={() => {
                 setActiveTab("candidates");
                 setStatusFilter("all");
+                setSearchTerm("");
               }}
             >
               <Users size={16} />

@@ -428,7 +428,12 @@ const db = {
   // CANDIDATES
   async getCandidates(filter = {}) {
     if (isMysqlActive) {
-      let sql = "SELECT * FROM candidates";
+      let sql = `
+        SELECT id, name, email, phone, current_role, experience_years, preferred_location,
+               skills, resume_path, resume_original_name, portfolio_url, status, admin_notes,
+               created_at, updated_at
+        FROM candidates
+      `;
       const params = [];
       if (filter.status && filter.status !== "all") {
         sql += " WHERE status = ?";
@@ -439,13 +444,41 @@ const db = {
       return rows;
     } else {
       const data = getLocalDb();
-      let list = [...data.candidates];
+      let list = (data.candidates || []).map(({ resume_data, ...rest }) => rest);
       if (filter.status && filter.status !== "all") {
         list = list.filter((c) => c.status === filter.status);
       }
       return list.sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at),
       );
+    }
+  },
+
+  async getCandidateById(id) {
+    if (isMysqlActive) {
+      const [rows] = await pool.query(
+        "SELECT * FROM candidates WHERE id = ? LIMIT 1",
+        [id]
+      );
+      return rows[0] || null;
+    } else {
+      const data = getLocalDb();
+      return (data.candidates || []).find((c) => String(c.id) === String(id)) || null;
+    }
+  },
+
+  async getCandidateByFilename(filename) {
+    if (isMysqlActive) {
+      const [rows] = await pool.query(
+        "SELECT * FROM candidates WHERE resume_path = ? OR resume_original_name = ? LIMIT 1",
+        [filename, filename]
+      );
+      return rows[0] || null;
+    } else {
+      const data = getLocalDb();
+      return (data.candidates || []).find(
+        (c) => c.resume_path === filename || c.resume_original_name === filename
+      ) || null;
     }
   },
 

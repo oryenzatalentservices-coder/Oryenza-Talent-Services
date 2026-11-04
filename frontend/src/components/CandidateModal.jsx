@@ -100,48 +100,39 @@ export default function CandidateModal({ isOpen, onClose }) {
 
       const res = await api.submitCandidate(data);
 
-      // Persist true candidate entry to localStorage as backup
+      // Persist true candidate entry to localStorage as backup (clean metadata without huge blobs)
       try {
-        const saveCandidateToStorage = (dataUrl = null) => {
-          try {
-            const trueCandidate = {
-              id: (res && res.data && res.data.id) || "cand_" + Date.now(),
-              name: formData.name,
-              email: formData.email,
-              phone: formData.phone,
-              current_role: formData.current_role,
-              experience_years: formData.experience_years,
-              preferred_location: formData.preferred_location,
-              skills: formData.skills,
-              resume_path: (res && res.data && res.data.resume_path) || (resumeFile ? resumeFile.name : null),
-              resume_original_name: resumeFile ? resumeFile.name : null,
-              resume_data_url: dataUrl || null,
-              status: "applied",
-              created_at: new Date().toISOString(),
-            };
-            const currentList = JSON.parse(
-              localStorage.getItem("oryenza_true_candidates") || "[]"
-            );
-            const exists = currentList.some((c) => c.id === trueCandidate.id);
-            if (!exists) {
-              currentList.unshift(trueCandidate);
-            }
-            localStorage.setItem(
-              "oryenza_true_candidates",
-              JSON.stringify(currentList)
-            );
-          } catch (_) {}
+        const trueCandidate = {
+          id: (res && res.data && res.data.id) || "cand_" + Date.now(),
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          current_role: formData.current_role,
+          experience_years: formData.experience_years,
+          preferred_location: formData.preferred_location,
+          skills: formData.skills,
+          resume_path: (res && res.data && res.data.resume_path) || (resumeFile ? resumeFile.name : null),
+          resume_original_name: resumeFile ? resumeFile.name : null,
+          status: "applied",
+          created_at: (res && res.data && res.data.created_at) || new Date().toISOString(),
         };
 
-        if (resumeFile && resumeFile.size < 3 * 1024 * 1024) {
-          const reader = new FileReader();
-          reader.onload = () => saveCandidateToStorage(reader.result);
-          reader.onerror = () => saveCandidateToStorage(null);
-          reader.readAsDataURL(resumeFile);
-        } else {
-          saveCandidateToStorage(null);
+        const currentList = JSON.parse(
+          localStorage.getItem("oryenza_true_candidates") || "[]"
+        );
+        // Clean out any legacy base64 blobs that could cause QuotaExceededError
+        const sanitizedList = currentList.map(({ resume_data, resume_data_url, ...rest }) => rest);
+        const exists = sanitizedList.some((c) => String(c.id) === String(trueCandidate.id));
+        if (!exists) {
+          sanitizedList.unshift(trueCandidate);
         }
-      } catch (_) {}
+        localStorage.setItem(
+          "oryenza_true_candidates",
+          JSON.stringify(sanitizedList)
+        );
+      } catch (storageErr) {
+        console.warn("Storage sync notice:", storageErr);
+      }
 
       setStatusType("success");
       setStatusMessage(
